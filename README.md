@@ -5,7 +5,7 @@ Users log in with Spotify and receive a visual report of their listening habits,
 including mood, energy, tempo, and genre trends.
 
 ## Tech Stack (Planned)
-- Frontend: React + Vite
+- Frontend: React + Vite (Typescript)
 - Backend: Node.js + Express
 - API: Spotify Web API
 - Auth: Spotify OAuth
