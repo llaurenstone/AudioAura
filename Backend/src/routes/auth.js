@@ -30,7 +30,7 @@ router.get("/spotify/callback", (req, res) => {
   res.redirect("http://localhost:5173/report");
 });
 
-// Frontend checks login state here
+// login state here
 router.get("/me", (req, res) => {
   if (!req.session.user) return res.status(401).json({ loggedIn: false });
   res.json({ loggedIn: true, user: req.session.user });
