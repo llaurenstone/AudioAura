@@ -83,7 +83,7 @@ app.post("/auth/logout", (req, res) => {
 });
 
 
-// start server LAST
+// start server 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
