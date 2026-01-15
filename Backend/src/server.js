@@ -54,7 +54,7 @@ app.get("/auth/spotify/callback", (req, res) => {
   // Mock exchange the code for tokens + user profile
   req.session.accessToken = "mock_access_token";
   req.session.refreshToken = "mock_refresh_token";
-  req.session.tokenExpiresAt = Date.now() + 60 * 60 * 1000;
+  req.session.tokenExpiresAt = Date.now() + 1000;
 
 // Mock Session User
   req.session.user = {
