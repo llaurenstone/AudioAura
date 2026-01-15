@@ -21,7 +21,7 @@ app.use(express.json());
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "audioaura-secret",
+    secret: "audioaura-secret", //Mock Cookies ID
     resave: false,
     saveUninitialized: false,
     cookie: {
