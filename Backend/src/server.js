@@ -51,7 +51,7 @@ app.get("/auth/spotify/callback", (req, res) => {
   const { code } = req.query;
   if (!code) return res.status(400).send("Missing code");
 
-  // pretend we exchanged the code for tokens + user profile
+  //Mock exchange the code for tokens + user profile
   req.session.accessToken = "mock_access_token";
   req.session.refreshToken = "mock_refresh_token";
   req.session.tokenExpiresAt = Date.now() + 60 * 60 * 1000;
