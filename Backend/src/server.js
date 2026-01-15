@@ -22,7 +22,7 @@ app.use(express.json());
 
 app.use(
   session({
-    secret: "audioaura-secret", //Mock Cookies ID
+    secret: "audioaura-secret", // Mock Cookies ID
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -83,7 +83,7 @@ app.post("/auth/logout", (req, res) => {
 });
 
 
-// start server 
+// start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
