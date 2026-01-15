@@ -8,7 +8,8 @@ import crypto from "crypto";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+//Mock port
+const PORT = 5001;
 
 app.use(
   cors({
