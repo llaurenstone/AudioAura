@@ -70,36 +70,6 @@ app.get("/auth/me", (req, res) => {
   res.json({ loggedIn: true, user: req.session.user });
 });
 
-// protected report endpoint (mock data)
-app.get("/report", (req, res) => {
-  if (!req.session.user) return res.status(401).json({ error: "Not logged in" });
-
-  res.json({
-    user: req.session.user,
-    topArtists: [
-      { name: "Bad Bunny" },
-      { name: "The Weeknd" },
-      { name: "Drake" },
-      { name: "Billie Eilish" },
-      { name: "Travis Scott" },
-    ],
-    topTracks: [
-      { name: "Track 1", artist: "Artist A" },
-      { name: "Track 2", artist: "Artist B" },
-      { name: "Track 3", artist: "Artist C" },
-    ],
-    topGenres: ["reggaeton", "pop", "hip hop", "rap", "dance"],
-    aura: {
-      type: "Neon Dreamer",
-      metrics: { energy: 0.78, valence: 0.62, danceability: 0.71, acousticness: 0.18 },
-      summary: [
-        "You thrive on high-energy tracks.",
-        "Your vibe is upbeat but not chaotic.",
-        "You lean danceable more than acoustic.",
-      ],
-    },
-  });
-});
 
 // logout
 app.post("/auth/logout", (req, res) => {
