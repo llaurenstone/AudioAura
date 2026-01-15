@@ -46,7 +46,7 @@ app.get("/auth/spotify/login", (req, res) => {
   res.redirect(`http://localhost:5001/auth/spotify/callback?code=${mockCode}&state=mock`);
 });
 
-// MOCK Spotify callback (sets session like OAuth would)
+// MOCK Spotify callback
 app.get("/auth/spotify/callback", (req, res) => {
   const { code } = req.query;
   if (!code) return res.status(400).send("Missing code");
