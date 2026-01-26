@@ -1,14 +1,27 @@
 import express from "express";
 import crypto from "crypto";
+import querystring from "querystring";
 
 const router = express.Router();
 
+
+
 // MOCK Spotify login: immediately "redirect back" like Spotify would
 router.get("/spotify/login", (req, res) => {
-  const mockCode = crypto.randomBytes(8).toString("hex");
-  res.redirect(
-    `http://localhost:5001/auth/spotify/callback?code=${mockCode}&state=mock`
-  );
+  const clientid = process.env.SPOTIFY_CLIENT_ID;
+  const red_url = process.env.SPOTIFY_REDIRECT_URI;
+
+  const state = crypto.randomBytes(8).toString("hex");
+  const scope = 'user-read-private user-read-email';
+
+  res.redirect('https://accounts.spotify.com/authorize?' +
+    querystring.stringify({
+      response_type: 'code',
+      client_id: clientid,
+      scope: scope,
+      redirect_uri: red_url,
+      state: state
+    }));
 });
 
 // MOCK callback: set session user + tokens
