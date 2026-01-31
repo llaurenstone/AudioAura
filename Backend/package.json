@@ -4,16 +4,18 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "certs": "mkcert -install && mkcert -key-file ./certs/127.0.0.1+1-key.pem -cert-file ./certs/127.0.0.1+1.pem 127.0.0.1 localhost",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "certs": "mkcert -install && mkcert -key-file ./certs/127.0.0.1+1-key.pem -cert-file ./certs/127.0.0.1+1.pem 127.0.0.1 localhost"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-session": "^1.19.0"
