@@ -1,20 +1,19 @@
+import fs from "fs";
+import https from "https";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-dotenv.config();
 import session from "express-session";
-import crypto from "crypto";
 import authRoutes from "./routes/auth.js";
 
-
+dotenv.config();
 
 const app = express();
-//Mock port
 const PORT = 5001;
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.FRONTEND_URL, //
     credentials: true,
   })
 );
@@ -23,24 +22,24 @@ app.use(express.json());
 
 app.use(
   session({
-    secret: "audioaura-secret", // Mock Cookies ID
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // set true in production (HTTPS)
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
     },
   })
 );
 
-
-app.get("/", (req, res) => {
-  res.json({ status: "AudioAura running" });
-});
-
+app.get("/", (req, res) => res.json({ status: "AudioAura running" }));
 app.use("/auth", authRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// mkcert-generated local certificates for https
+const key = fs.readFileSync("./certs/127.0.0.1+1-key.pem");
+const cert = fs.readFileSync("./certs/127.0.0.1+1.pem");
+
+https.createServer({ key, cert }, app).listen(PORT, () => {
+  console.log(`Backend HTTPS running on https://127.0.0.1:${PORT}`);
 });
