@@ -1,35 +1,65 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [status, setStatus] = useState<"loading" | "logged-in" | "logged-out">(
+    "loading"
+  );
 
+//Login for user's spotify
+  const login = () => {
+    window.location.href =
+      "https://127.0.0.1:5001/auth/spotify/login";
+  };
+    const logout = async () => {
+      await fetch("https://127.0.0.1:5001/auth/spotify/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      setStatus("logged-out");
+    };
+
+// Check Status of User login
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const r = await fetch(
+          "https://127.0.0.1:5001/auth/spotify/status",
+          { credentials: "include" }
+        );
+        const j = await r.json();
+        setStatus(j.loggedIn ? "logged-in" : "logged-out");
+      } catch {
+        setStatus("logged-out");
+      }
+    };
+
+    checkStatus();
+  }, []);
+
+// Simple UI to test auth
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
+    <div className="page">
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        <h1>AudioAura</h1>
+
+        {status === "loading" && <p>Checking login...</p>}
+
+        {status === "logged-out" && (
+          <button onClick={login}>Login with Spotify</button>
+        )}
+
+        {status === "logged-in" && (
+          <>
+            <p className="success"> Logged in with Spotify</p>
+            <button onClick={logout}>Logout</button>
+          </>
+        )}
+
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
