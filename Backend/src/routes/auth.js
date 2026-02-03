@@ -6,7 +6,7 @@ const router = express.Router();
 const SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize";
 const SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token";
 const SPOTIFY_ME_URL = "https://api.spotify.com/v1/me";
-const SCOPES = "user-read-email user-read-private";
+const SCOPES = "user-read-email user-read-private user-top-read";
 
 // base64url encoding required by spotify PKCE
 function base64url(buffer) {
