@@ -7,7 +7,7 @@ router.get("/top-tracks", async (req, res) => {
     if (!token) return res.status(401).json({ error: "Not logged in" });
   
     try {
-      const resp = await fetch("https://api.spotify.com/v1/me/top/tracks", {
+      const resp = await fetch("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=5", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -44,7 +44,7 @@ router.get("/top-artists", async (req, res) => {
     if (!token) return res.status(401).json({ error: "Not logged in" });
   
     try {
-      const resp = await fetch("https://api.spotify.com/v1/me/top/artists", {
+      const resp = await fetch("https://api.spotify.com/v1/me/top/artists?time_range=short_term&limit=5", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -73,6 +73,7 @@ router.get("/top-artists", async (req, res) => {
       res.status(500).json({ error: "Failed to fetch top tracks", details: err.message });
     }
   });
+
 
 
 export default router;
