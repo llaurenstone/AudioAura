@@ -5,6 +5,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import session from "express-session";
 import authRoutes from "./routes/auth.js";
+import spotifyRoutes from "./routes/spotify.js"
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use(
 
 app.get("/", (req, res) => res.json({ status: "AudioAura running" }));
 app.use("/auth", authRoutes);
+app.use("/get", spotifyRoutes);
 
 // mkcert-generated local certificates for https
 const key = fs.readFileSync("./certs/127.0.0.1+1-key.pem");
