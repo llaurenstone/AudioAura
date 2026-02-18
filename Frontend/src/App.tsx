@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import "./App.css";
 
 type View = "songs" | "artists" | null;
@@ -9,7 +9,6 @@ function App() {
   );
   const [activeView, setActiveView] = useState<View>(null);
 
-  // Login for user's spotify
   const login = () => {
     window.location.href = "https://127.0.0.1:5001/auth/spotify/login";
   };
@@ -23,7 +22,6 @@ function App() {
     setActiveView(null);
   };
 
-  // Check Status of User login
   useEffect(() => {
     const checkStatus = async () => {
       try {
@@ -41,40 +39,84 @@ function App() {
     checkStatus();
   }, []);
 
-  // 🔒 Top Songs
-  const TopSongs = () => {
-    const [songs, setSongs] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+ 
+ const TopSongs = () => {
+  const [songs, setSongs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  
+  const hasFetched = useRef(false);
 
-    useEffect(() => {
-      fetch("https://127.0.0.1:5001/get/top-tracks", {
-        credentials: "include",
+  useEffect(() => {
+
+    if (hasFetched.current) return;
+    
+   
+    hasFetched.current = true;
+
+    fetch("https://127.0.0.1:5001/get/top-tracks", {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setSongs(data.items || data);
+        setLoading(false);
       })
-        .then((res) => res.json())
-        .then((data) => {
-          setSongs(data.items || data);
-          setLoading(false);
-        });
-    }, []);
+      .catch(err => {
+        console.error("Error fetching songs:", err);
+        setLoading(false);
+      });
+  }, []);
 
-    if (loading) return <p>Loading top songs...</p>;
+  if (loading) return <p>Loading top songs & analysis (this may take ~10-20 seconds)...</p>;
 
-    return (
-      <div className="protected">
-        <h2>Your Top Songs</h2>
-        <ul>
-          {songs.map((song, i) => (
-            <li key={song.id || i}>
+  return (
+    <div className="protected">
+      <h2>Your Top Songs</h2>
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        {songs.map((song, i) => (
+          <li 
+            key={song.id || i} 
+            style={{ 
+              marginBottom: "15px", 
+              padding: "10px", 
+              border: "1px solid #ccc", 
+              borderRadius: "8px" 
+            }}
+          >
+            <div style={{ fontSize: "1.1rem" }}>
               <strong>{song.name}</strong> –{" "}
               {song.artists?.map((a: any) => a.name).join(", ")}
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
+            </div>
 
-  // 🔒 Top Artists
+            {song.soundnet_analysis ? (
+              <div style={{ 
+                marginTop: "8px", 
+                fontSize: "0.9rem", 
+                color: "#555", 
+                display: "flex", 
+                gap: "15px",
+                backgroundColor: "#f0f0f0",
+                padding: "5px 10px",
+                borderRadius: "5px"
+              }}>
+                <span><strong>BPM:</strong> {song.soundnet_analysis.tempo || "N/A"}</span>
+                <span><strong>Key:</strong> {song.soundnet_analysis.key || "?"} {song.soundnet_analysis.scale || ""}</span>
+                <span><strong>Danceability:</strong> {song.soundnet_analysis.danceability || "Unknown"}</span>
+              </div>
+            ) : (
+              <div style={{ fontSize: "0.8rem", color: "#999", marginTop: "5px" }}>
+                Analysis unavailable (API Limit Reached or Song Not Found)
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+
   const TopArtists = () => {
     const [artists, setArtists] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -120,8 +162,6 @@ function App() {
         {status === "logged-in" && (
           <>
             <button onClick={logout}>Logout</button>
-
-            {/* Buttons side by side */}
             <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
               <button onClick={() => setActiveView("songs")}>
                 Get Top Songs
@@ -131,7 +171,6 @@ function App() {
               </button>
             </div>
 
-            {/* Only ONE renders at a time */}
             {activeView === "songs" && <TopSongs />}
             {activeView === "artists" && <TopArtists />}
           </>
