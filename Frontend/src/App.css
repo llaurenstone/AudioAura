@@ -62,9 +62,8 @@ button {
   border: none;
   cursor: pointer;
 
-  background: #1db954;   
+  background: #1db954;
   color: black;
 
   transition: transform 0.1s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
-
