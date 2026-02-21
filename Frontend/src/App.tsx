@@ -1,12 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import "./App.css";
+import LoginPage, { type LoginStatus } from "./components/LoginPage/LoginPage";
 
 type View = "songs" | "artists" | null;
 
 function App() {
-  const [status, setStatus] = useState<"loading" | "logged-in" | "logged-out">(
-    "loading"
-  );
+  const [status, setStatus] = useState<LoginStatus>("loading");
   const [activeView, setActiveView] = useState<View>(null);
 
   const login = () => {
@@ -149,18 +148,13 @@ function App() {
   };
 
   return (
-    <div className="page">
-      <div className="card">
-        <h1>AudioAura</h1>
+    <>
+      {status !== "logged-in" && <LoginPage status={status} onLogin={login} />}
 
-        {status === "loading" && <p>Checking login...</p>}
-
-        {status === "logged-out" && (
-          <button onClick={login}>Login with Spotify</button>
-        )}
-
-        {status === "logged-in" && (
-          <>
+      {status === "logged-in" && (
+        <div className="page">
+          <div className="card">
+            <h1>AudioAura</h1>
             <button onClick={logout}>Logout</button>
             <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
               <button onClick={() => setActiveView("songs")}>
@@ -173,10 +167,10 @@ function App() {
 
             {activeView === "songs" && <TopSongs />}
             {activeView === "artists" && <TopArtists />}
-          </>
-        )}
-      </div>
-    </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
