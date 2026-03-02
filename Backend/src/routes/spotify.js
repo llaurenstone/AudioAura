@@ -40,13 +40,16 @@ router.get("/top-tracks", async (req, res) => {
                     "x-rapidapi-host": "track-analysis.p.rapidapi.com"
                 }
             });
-
             const analysisData = analysisResp.ok ? await analysisResp.json() : null;
-            
+
             analyzedItems.push({
-                ...item,
-                soundnet_analysis: analysisData
-            });
+              id: item.id,
+              name: item.name,
+              artist: item.artists[0]?.name,
+              image: item.album?.images[0]?.url, 
+              soundnet_analysis: analysisData
+          });
+          
             await delay(1100); 
 
           } catch (innerErr) {
