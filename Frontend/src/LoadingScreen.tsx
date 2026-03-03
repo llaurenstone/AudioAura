@@ -8,7 +8,7 @@ import aura4 from "./assets/aura4.png";
 import aura5 from "./assets/aura5.png";
 import aura6 from "./assets/aura6.png";
 
-import bg from "./assets/homescreen.png";
+import bg from "./assets/LoadingScreen.png";
 
 type Props = { progress?: number };
 
@@ -42,15 +42,14 @@ export default function LoadingScreen({ progress = 0 }: Props) {
 
   // smoother aura crossfade
   useEffect(() => {
-    const HOLD_MS = 800;   // how long it's fully visible
-    const FADE_MS = 260;   // fade duration (match CSS)
+    const HOLD_MS = 800;
+    const FADE_MS = 260;
 
     const id = window.setInterval(() => {
-      setFade(false); // fade out
-
+      setFade(false);
       window.setTimeout(() => {
-        setAuraIndex((i) => (i + 1) % auras.length); // swap while invisible
-        setFade(true); // fade in
+        setAuraIndex((i) => (i + 1) % auras.length);
+        setFade(true);
       }, FADE_MS);
     }, HOLD_MS + FADE_MS * 2);
 
