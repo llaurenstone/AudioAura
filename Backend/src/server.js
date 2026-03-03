@@ -37,6 +37,7 @@ app.use(
 app.get("/", (req, res) => res.json({ status: "AudioAura running" }));
 app.use("/auth", authRoutes);
 app.use("/get", spotifyRoutes);
+app.use("/auth/spotify", spotifyRoutes);
 
 // mkcert-generated local certificates for https
 const key = fs.readFileSync("./certs/127.0.0.1+1-key.pem");
