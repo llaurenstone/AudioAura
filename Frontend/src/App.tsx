@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import LoadingScreen from "./LoadingScreen";
+import LoginPage, { type LoginStatus } from "./components/LoginPage/LoginPage";
 
 type Phase = "idle" | "fetching" | "ready" | "error";
 
@@ -8,7 +9,7 @@ function App() {
   const [status, setStatus] = useState<"loading" | "logged-in" | "logged-out">(
     "loading"
   );
-
+  const [activeView, setActiveView] = useState<View>(null);
 
   const [phase, setPhase] = useState<Phase>("idle");
 
@@ -49,6 +50,7 @@ function App() {
 
     return id;
   };
+  
 
   const login = () => {
     window.location.href = "https://127.0.0.1:5001/auth/spotify/login";
@@ -154,42 +156,6 @@ function App() {
   if (status === "loading") return <LoadingScreen progress={12} />;
   if (phase === "fetching") return <LoadingScreen progress={progress} />;
 
-  if (status === "logged-out") {
-    return (
-      <div className="login-page">
-        <div className="login-card">
-          <h1>AudioAura</h1>
-          <button onClick={login}>Login with Spotify</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (phase === "error") {
-    return (
-      <div className="login-page">
-        <div className="login-card">
-          <h1>AudioAura</h1>
-          <p style={{ color: "crimson" }}>{errorMsg}</p>
-          <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-            <button onClick={logout}>Logout</button>
-            <button
-              onClick={() => {
-
-                setPhase("idle");
-                setProgressSafe(0);
-                setStatus("logged-in");
-              }}
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-
  return (
    <div className="page">
         <div className="card">
@@ -233,5 +199,31 @@ function App() {
    </div>
  );
 };
+  return (
+    <>
+      {status !== "logged-in" && <LoginPage status={status} onLogin={login} />}
+
+      {status === "logged-in" && (
+        <div className="page">
+          <div className="card">
+            <h1>AudioAura</h1>
+            <button onClick={logout}>Logout</button>
+            <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+              <button onClick={() => setActiveView("songs")}>
+                Get Top Songs
+              </button>
+              <button onClick={() => setActiveView("artists")}>
+                Get Top Artists
+              </button>
+            </div>
+
+            {activeView === "songs" && <TopSongs />}
+            {activeView === "artists" && <TopArtists />}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 export default App;

@@ -5,13 +5,7 @@
 body {
   overflow-y: auto;
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell;
-
-  background: #000;
-  color: white;
 }
-
 
 .page {
   position: absolute;
