@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import LoadingScreen from "./LoadingScreen";
-import LoginPage, { type LoginStatus } from "./components/LoginPage/LoginPage";
+import LoginPage from "./components/LoginPage/LoginPage";
 
 type Phase = "idle" | "fetching" | "ready" | "error";
 
@@ -9,7 +9,6 @@ function App() {
   const [status, setStatus] = useState<"loading" | "logged-in" | "logged-out">(
     "loading"
   );
-  const [activeView, setActiveView] = useState<View>(null);
 
   const [phase, setPhase] = useState<Phase>("idle");
 
@@ -29,7 +28,7 @@ function App() {
     setProgress(clamped);
   };
 
-  //starts progress bar
+  // starts progress bar
   const startProgress = () => {
     setProgressSafe(5);
 
@@ -39,10 +38,7 @@ function App() {
         if (cur >= cap) return cur;
 
         const step =
-          cur < 35 ? 0.85 :
-          cur < 65 ? 0.55 :
-          cur < 80 ? 0.28 :
-          0.14;
+          cur < 35 ? 0.85 : cur < 65 ? 0.55 : cur < 80 ? 0.28 : 0.14;
 
         return cur + step;
       });
@@ -50,7 +46,6 @@ function App() {
 
     return id;
   };
-  
 
   const login = () => {
     window.location.href = "https://127.0.0.1:5001/auth/spotify/login";
@@ -72,7 +67,6 @@ function App() {
     }
   };
 
-
   useEffect(() => {
     const checkStatus = async () => {
       try {
@@ -88,7 +82,6 @@ function App() {
 
     checkStatus();
   }, []);
-
 
   useEffect(() => {
     if (status !== "logged-in") return;
@@ -130,7 +123,6 @@ function App() {
         if (fakeId) window.clearInterval(fakeId);
         setProgressSafe(100);
 
-
         await new Promise((r) => setTimeout(r, 250));
 
         if (cancelled) return;
@@ -152,77 +144,60 @@ function App() {
     };
   }, [status]);
 
-
+  // ===== Render =====
   if (status === "loading") return <LoadingScreen progress={12} />;
+
+  if (status !== "logged-in") {
+    return <LoginPage status={status} onLogin={login} />;
+  }
+
   if (phase === "fetching") return <LoadingScreen progress={progress} />;
 
- return (
-   <div className="page">
-        <div className="card">
-
-       <h1>AudioAura</h1>
-       <button onClick={logout}>Logout</button>
-
-       <h2 style={{ marginTop: 40 }}>Your Top Songs</h2>
-
-       <ul className="song-list">
-         {songs.map((song, i) => (
-           <li key={song.id || i} className="song-card">
-             <div>
-               <strong>{song.name}</strong> –{" "}
-               {song.artists?.map((a: any) => a.name).join(", ")}
-             </div>
-
-             {song.soundnet_analysis && (
-               <div className="analysis-box">
-                 BPM: {song.soundnet_analysis.tempo ?? "N/A"} |{" "}
-                 Key: {song.soundnet_analysis.key ?? "?"}{" "}
-                 {song.soundnet_analysis.scale ?? ""} |{" "}
-                 Danceability: {song.soundnet_analysis.danceability ?? "Unknown"}
-               </div>
-             )}
-           </li>
-         ))}
-       </ul>
-
-       <h2 style={{ marginTop: 40 }}>Your Top Artists</h2>
-
-       <ul style={{ listStyle: "none", padding: 0 }}>
-         {artists.map((artist, i) => (
-           <li key={artist.id || i} style={{ margin: "8px 0" }}>
-             <strong>{artist.name}</strong>
-           </li>
-         ))}
-       </ul>
-
-     </div>
-   </div>
- );
-};
   return (
-    <>
-      {status !== "logged-in" && <LoginPage status={status} onLogin={login} />}
+    <div className="page">
+      <div className="card">
+        <h1>AudioAura</h1>
+        <button onClick={logout}>Logout</button>
 
-      {status === "logged-in" && (
-        <div className="page">
-          <div className="card">
-            <h1>AudioAura</h1>
-            <button onClick={logout}>Logout</button>
-            <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-              <button onClick={() => setActiveView("songs")}>
-                Get Top Songs
-              </button>
-              <button onClick={() => setActiveView("artists")}>
-                Get Top Artists
-              </button>
-            </div>
+        {phase === "error" && (
+          <p style={{ marginTop: 16 }}>
+            {errorMsg ?? "Something went wrong loading your stats."}
+          </p>
+        )}
 
-            {activeView === "songs" && <TopSongs />}
-            {activeView === "artists" && <TopArtists />}
-          </div>
-        </div>
-      )}
-    </>
+        <h2 style={{ marginTop: 40 }}>Your Top Songs</h2>
+
+        <ul className="song-list">
+          {songs.map((song, i) => (
+            <li key={song.id || i} className="song-card">
+              <div>
+                <strong>{song.name}</strong> –{" "}
+                {song.artists?.map((a: any) => a.name).join(", ")}
+              </div>
+
+              {song.soundnet_analysis && (
+                <div className="analysis-box">
+                  BPM: {song.soundnet_analysis.tempo ?? "N/A"} | Key:{" "}
+                  {song.soundnet_analysis.key ?? "?"}{" "}
+                  {song.soundnet_analysis.scale ?? ""} | Danceability:{" "}
+                  {song.soundnet_analysis.danceability ?? "Unknown"}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        <h2 style={{ marginTop: 40 }}>Your Top Artists</h2>
+
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {artists.map((artist, i) => (
+            <li key={artist.id || i} style={{ margin: "8px 0" }}>
+              <strong>{artist.name}</strong>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }
 
