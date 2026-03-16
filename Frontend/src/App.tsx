@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import LoadingScreen from "./LoadingScreen";
 import LoginPage from "./components/LoginPage/LoginPage";
+import ReportAnalysis from "./components/ReportAnalysis/ReportAnalysis";
 
 type Phase = "idle" | "fetching" | "ready" | "error";
 
@@ -154,50 +155,12 @@ function App() {
   if (phase === "fetching") return <LoadingScreen progress={progress} />;
 
   return (
-    <div className="page">
-      <div className="card">
-        <h1>AudioAura</h1>
-        <button onClick={logout}>Logout</button>
-
-        {phase === "error" && (
-          <p style={{ marginTop: 16 }}>
-            {errorMsg ?? "Something went wrong loading your stats."}
-          </p>
-        )}
-
-        <h2 style={{ marginTop: 40 }}>Your Top Songs</h2>
-
-        <ul className="song-list">
-          {songs.map((song, i) => (
-            <li key={song.id || i} className="song-card">
-              <div>
-                <strong>{song.name}</strong> –{" "}
-                {song.artists?.map((a: any) => a.name).join(", ")}
-              </div>
-
-              {song.soundnet_analysis && (
-                <div className="analysis-box">
-                  BPM: {song.soundnet_analysis.tempo ?? "N/A"} | Key:{" "}
-                  {song.soundnet_analysis.key ?? "?"}{" "}
-                  {song.soundnet_analysis.scale ?? ""} | Danceability:{" "}
-                  {song.soundnet_analysis.danceability ?? "Unknown"}
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
-
-        <h2 style={{ marginTop: 40 }}>Your Top Artists</h2>
-
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {artists.map((artist, i) => (
-            <li key={artist.id || i} style={{ margin: "8px 0" }}>
-              <strong>{artist.name}</strong>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+    <ReportAnalysis
+      songs={songs}
+      artists={artists}
+      errorMsg={phase === "error" ? errorMsg : null}
+      onLogout={logout}
+    />
   );
 }
 

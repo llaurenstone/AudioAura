@@ -11,8 +11,11 @@
     "certs": "mkcert -install && mkcert -key-file ./certs/127.0.0.1+1-key.pem -cert-file ./certs/127.0.0.1+1.pem 127.0.0.1 localhost"
   },
   "dependencies": {
+    "lucide-react": "^0.577.0",
+    "motion": "^12.35.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "recharts": "^3.7.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
