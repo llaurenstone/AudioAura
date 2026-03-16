@@ -1,0 +1,493 @@
+.report-screen {
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(140deg, #050816 0%, #16112c 54%, #0e2030 100%);
+  color: #f8f7ff;
+  overflow: hidden;
+}
+
+.report-screen__backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 12% 16%, rgba(168, 85, 247, 0.32), transparent 24%),
+    radial-gradient(circle at 88% 18%, rgba(236, 72, 153, 0.22), transparent 22%),
+    radial-gradient(circle at 62% 78%, rgba(59, 130, 246, 0.18), transparent 24%);
+  pointer-events: none;
+}
+
+.report-screen__header,
+.report-screen__content {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.report-screen__header {
+  padding: 24px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.report-screen__header-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.report-button {
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(135deg, #f0ba72 0%, #ec4899 100%);
+  color: #150d18;
+  font-weight: 700;
+}
+
+.report-button--secondary,
+.report-button--ghost {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.report-button--ghost {
+  backdrop-filter: blur(12px);
+}
+
+.report-screen__content {
+  padding: 42px 0 56px;
+}
+
+.report-screen__hero,
+.report-panel,
+.report-stat-card,
+.report-aura-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 12, 26, 0.68);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(18px);
+}
+
+.report-screen__hero {
+  border-radius: 36px;
+  padding: 40px;
+  margin-bottom: 24px;
+}
+
+.report-section-label {
+  margin: 0 0 12px;
+  color: #d8c6ff;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.report-screen__hero h1,
+.report-panel h2,
+.report-stat-card h3,
+.report-aura-title {
+  margin: 0;
+}
+
+.report-screen__hero h1 {
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+}
+
+.report-screen__hero-copy,
+.report-stat-card p,
+.report-screen__error,
+.report-aura-description,
+.report-aura-trait p,
+.report-track-row p,
+.report-artist-card p,
+.report-meter-intensity {
+  color: #ddd4f8;
+}
+
+.report-screen__hero-copy {
+  max-width: 62ch;
+  margin: 16px 0 0;
+  font-size: 1.05rem;
+}
+
+.report-screen__error {
+  margin: 0 0 24px;
+  padding: 14px 16px;
+  border-left: 4px solid #fb7185;
+  border-radius: 16px;
+  background: rgba(127, 29, 29, 0.32);
+}
+
+.report-screen__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.report-stat-card,
+.report-panel {
+  border-radius: 28px;
+  padding: 28px;
+}
+
+.report-stat-card__label,
+.report-aura-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.report-stat-card__label {
+  margin-bottom: 18px;
+  color: #d7c7ff;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.82rem;
+}
+
+.report-stat-card__artist {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.report-stat-card__artist img {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.report-stat-card__image-placeholder,
+.report-artist-card__image-placeholder {
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #d8c6ff;
+  font-weight: 700;
+}
+
+.report-stat-card__image-placeholder {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.report-aura-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 32px;
+  padding: 32px;
+  margin-bottom: 24px;
+  background:
+    linear-gradient(135deg, rgba(168, 85, 247, 0.16), rgba(236, 72, 153, 0.16)),
+    rgba(10, 12, 26, 0.68);
+}
+
+.report-aura-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(168, 85, 247, 0.12),
+    transparent 45%,
+    rgba(236, 72, 153, 0.12)
+  );
+}
+
+.report-aura-content {
+  position: relative;
+  z-index: 1;
+}
+
+.report-aura-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: grid;
+  place-items: center;
+}
+
+.report-aura-icon {
+  color: #e9d5ff;
+}
+
+.report-aura-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.report-aura-description {
+  margin: 20px 0 24px;
+  max-width: 64ch;
+  font-size: 1.05rem;
+}
+
+.report-aura-traits-title {
+  margin: 0 0 14px;
+  font-weight: 700;
+}
+
+.report-aura-trait {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.report-aura-trait + .report-aura-trait {
+  margin-top: 10px;
+}
+
+.report-aura-trait-dot,
+.report-aura-star {
+  border-radius: 999px;
+  background: rgba(233, 213, 255, 0.7);
+}
+
+.report-aura-trait-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 8px;
+  flex: 0 0 auto;
+}
+
+.report-aura-star {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+}
+
+.report-panel {
+  margin-bottom: 24px;
+}
+
+.report-aura-card--empty {
+  display: flex;
+  align-items: center;
+  min-height: 220px;
+}
+
+.report-panel__header {
+  margin-bottom: 20px;
+}
+
+.report-meter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.report-meter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.report-meter-label {
+  font-weight: 600;
+}
+
+.report-meter-track {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.report-meter-fill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.report-meter-fill-purple {
+  background: linear-gradient(90deg, #8b5cf6, #c084fc);
+}
+
+.report-meter-fill-pink {
+  background: linear-gradient(90deg, #ec4899, #f9a8d4);
+}
+
+.report-meter-fill-blue {
+  background: linear-gradient(90deg, #3b82f6, #7dd3fc);
+}
+
+.report-meter-fill-green {
+  background: linear-gradient(90deg, #10b981, #86efac);
+}
+
+.report-meter-shimmer {
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.22),
+    transparent
+  );
+}
+
+.report-meter-value {
+  margin-top: 8px;
+  text-align: right;
+  color: #ddd4f8;
+}
+
+.report-chart {
+  height: 320px;
+}
+
+.report-screen__split {
+  display: grid;
+  grid-template-columns: 1.05fr 1.2fr;
+  gap: 24px;
+}
+
+.report-artists-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.report-artist-card {
+  text-align: center;
+}
+
+.report-artist-card__image-wrap {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.report-artist-card__image-wrap img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.report-artist-card__image-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.report-artist-card__image-wrap span,
+.report-track-row__rank {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  color: #fff;
+  font-weight: 700;
+}
+
+.report-artist-card__image-wrap span {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.report-tracks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.report-track-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.report-track-row__rank {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  flex: 0 0 auto;
+}
+
+.report-track-row__copy {
+  flex: 1;
+}
+
+.report-track-row__copy h3,
+.report-artist-card h3 {
+  margin: 0 0 4px;
+}
+
+.report-empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+  color: #ddd4f8;
+  text-align: center;
+}
+
+@media (max-width: 1024px) {
+  .report-screen__stats-grid,
+  .report-meter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .report-screen__split {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .report-screen__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .report-screen__header-actions {
+    justify-content: stretch;
+  }
+
+  .report-screen__header-actions .report-button,
+  .report-button--ghost {
+    flex: 1 1 auto;
+  }
+
+  .report-screen__hero,
+  .report-panel,
+  .report-stat-card,
+  .report-aura-card {
+    padding: 22px;
+  }
+
+  .report-screen__stats-grid,
+  .report-meter-grid,
+  .report-artists-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-track-row {
+    flex-wrap: wrap;
+  }
+}
