@@ -5,6 +5,8 @@
 body {
   overflow-y: auto;
   margin: 0;
+  background: #080808;
+  color: #f5f3ee;
 }
 
 .page {
@@ -13,51 +15,243 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 32px 20px;
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(57, 66, 120, 0.4), transparent 60%),
+    radial-gradient(900px 500px at 90% 10%, rgba(47, 107, 86, 0.35), transparent 65%),
+    #060606;
 }
 
 .card {
-  background: #0d0d0d;
-  padding: 48px 56px;
-  border-radius: 20px;
-  width: 360px;
+  background: rgba(12, 12, 12, 0.96);
+  padding: 40px 48px;
+  border-radius: 24px;
+  width: min(980px, 94vw);
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
   text-align: center;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
-
-
 
 .card h1 {
-  margin-top: 0;
-  margin-bottom: 32px;
-  font-size: 2.4rem;
-  letter-spacing: 1px;
+  margin: 0;
+  font-size: 2.2rem;
+  letter-spacing: 0.03em;
 }
-
 
 .card p {
-  margin-bottom: 24px;
-  opacity: 0.9;
+  margin: 0;
 }
 
-
-
-.card button {
-  display: block;
-  margin: 12px auto;
+.subtitle {
+  margin-top: 8px;
+  font-size: 0.95rem;
+  color: #b9b9b9;
 }
 
+.welcome {
+  margin-top: 6px;
+  font-size: 0.95rem;
+  color: #e4e0d6;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  text-align: left;
+  margin-bottom: 12px;
+}
+
+.section {
+  margin-top: 28px;
+  text-align: left;
+}
+
+.section h2 {
+  margin: 0 0 12px;
+  font-size: 1.2rem;
+  letter-spacing: 0.02em;
+}
+
+.song-list,
+.stat-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.song-card {
+  background: #141414;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.analysis-box {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #c7c7c7;
+}
+
+.artist-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #141414;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.rank {
+  font-size: 0.85rem;
+  color: #a1a6b6;
+  background: #101010;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 4px 8px;
+  min-width: 34px;
+  text-align: center;
+}
+
+.artist-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.artist-name {
+  font-weight: 600;
+}
+
+.genre-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.genre-card {
+  background: #141414;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.genre-name {
+  font-weight: 600;
+}
+
+.genre-count {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: #bdbdbd;
+}
+
+.share-panel {
+  margin-top: 32px;
+  padding: 16px;
+  background: #111111;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: left;
+}
+
+.share-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.share-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.share-row {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.share-input {
+  flex: 1;
+  min-width: 220px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0b0b0b;
+  color: #f5f3ee;
+}
+
+.share-meta {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #9ba0b3;
+  text-align: left;
+}
+
+.muted {
+  color: #a9a9a9;
+}
+
+.error-text {
+  color: #ff8a8a;
+  margin-top: 12px;
+}
 
 button {
-  width: 100%;
-  padding: 14px;
-  font-size: 1rem;
+  width: auto;
+  padding: 12px 18px;
+  font-size: 0.95rem;
   font-weight: 600;
   border-radius: 999px;
   border: none;
   cursor: pointer;
-
   background: #1db954;
-  color: black;
-
+  color: #0b0b0b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   transition: transform 0.1s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button-ghost {
+  background: transparent;
+  color: #f5f3ee;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.button-secondary {
+  background: #2a2a2a;
+  color: #f5f3ee;
+}
+
+.button-inline {
+  width: auto;
+}
+
+@media (max-width: 720px) {
+  .card {
+    padding: 28px 24px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
