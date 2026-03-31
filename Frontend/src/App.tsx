@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import LoadingScreen from "./LoadingScreen";
 import LoginPage from "./components/LoginPage/LoginPage";
+import ReportAnalysis from "./components/ReportAnalysis/ReportAnalysis";
 
 type Phase = "idle" | "fetching" | "ready" | "error";
 type SharePhase = "idle" | "loading" | "ready" | "error";
@@ -565,6 +566,12 @@ function App() {
         </section>
       </div>
     </div>
+    <ReportAnalysis
+      songs={songs}
+      artists={artists}
+      errorMsg={phase === "error" ? errorMsg : null}
+      onLogout={logout}
+    />
   );
 }
 
