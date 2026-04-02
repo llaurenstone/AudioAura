@@ -565,13 +565,13 @@ function App() {
           )}
         </section>
       </div>
+      <ReportAnalysis
+        songs={songs}
+        artists={artists}
+        errorMsg={phase === "error" ? errorMsg : null}
+        onLogout={logout}
+      />
     </div>
-    <ReportAnalysis
-      songs={songs}
-      artists={artists}
-      errorMsg={phase === "error" ? errorMsg : null}
-      onLogout={logout}
-    />
   );
 }
 
