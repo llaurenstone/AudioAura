@@ -11,9 +11,48 @@ function requireEnv(name) {
 const apikey = requireEnv("TRACK_ANALYSIS_API");
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const SUMMARY_CACHE_TTL_MS = 1000 * 60 * 60 * 24;
+const summaryCache = new Map();
+
+const getCacheKey = (token, scope) => `${scope}:${token}`;
+
+const readCache = (key) => {
+  const entry = summaryCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) {
+    summaryCache.delete(key);
+    return null;
+  }
+  return entry.data;
+};
+
+const writeCache = (key, data) => {
+  summaryCache.set(key, {
+    data,
+    expiresAt: Date.now() + SUMMARY_CACHE_TTL_MS,
+  });
+};
+
+const purgeExpiredCache = () => {
+  const now = Date.now();
+  for (const [key, entry] of summaryCache.entries()) {
+    if (entry.expiresAt <= now) {
+      summaryCache.delete(key);
+    }
+  }
+};
+
+setInterval(purgeExpiredCache, 60 * 60 * 1000).unref?.();
+
 router.get("/top-tracks", async (req, res) => {
     const token = req.session?.accessToken;
     if (!token) return res.status(401).json({ error: "Not logged in" });
+
+    const cacheKey = getCacheKey(token, "top-tracks");
+    const cached = readCache(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
   
     try {
       const resp = await fetch("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=5", {
@@ -27,7 +66,7 @@ router.get("/top-tracks", async (req, res) => {
       catch { return res.status(500).json({error: "Bad Spotify Response"});}
 
       if (!resp.ok) return res.status(resp.status).json(data);
-  
+
       if (data.items && Array.isArray(data.items)) {
         const analyzedItems = [];
 
@@ -60,7 +99,8 @@ router.get("/top-tracks", async (req, res) => {
 
         data.items = analyzedItems;
       }
-  
+
+      writeCache(cacheKey, data);
       res.json(data);
     } catch (err) {
       console.error(err);
@@ -71,6 +111,12 @@ router.get("/top-tracks", async (req, res) => {
 router.get("/top-artists", async (req, res) => {
     const token = req.session?.accessToken;
     if (!token) return res.status(401).json({ error: "Not logged in" });
+
+    const cacheKey = getCacheKey(token, "top-artists");
+    const cached = readCache(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
   
     try {
       const resp = await fetch("https://api.spotify.com/v1/me/top/artists?time_range=short_term&limit=5", {
@@ -93,7 +139,8 @@ router.get("/top-artists", async (req, res) => {
       if (!resp.ok) {
         return res.status(resp.status).json(data);
       }
-  
+
+      writeCache(cacheKey, data);
       res.json(data);
     } catch (err) {
       console.error("Fetch failed:", err);
