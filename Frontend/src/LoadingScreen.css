@@ -36,22 +36,22 @@ html, body, #root {
 }
 
 .auraImage {
-  width: 190px;
-  height: 190px;
+  width: clamp(250px, 30vw, 360px);
+  height: clamp(250px, 30vw, 360px);
   object-fit: contain;
-  filter: drop-shadow(0 14px 40px rgba(0,0,0,0.25));
-  transform: translateX(30px) translateY(-50px);
-  transition: opacity 260ms ease, transform 260ms ease;
+  filter: drop-shadow(0 18px 54px rgba(0, 0, 0, 0.3));
+  transform: translateY(-42px) scale(0.94);
+  transition: opacity 260ms ease, transform 360ms ease;
 }
 
 .auraOn {
   opacity: 1;
-  transform: translateX(0px) translateY(-50px) scale(1.02);
+  transform: translateY(-42px) scale(1.12);
 }
 
 .auraOff {
   opacity: 0;
-  transform: translateX(0px) translateY(-50px) scale(0.98);
+  transform: translateY(-42px) scale(0.8);
 }
 
 .loadingTitle {
@@ -94,13 +94,13 @@ html, body, #root {
 .loadingIcon {
   display: grid;
   place-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 10px;
 }
 
 .auraStack {
   position: relative;
-  width: 190px;
-  height: 190px;
+  width: clamp(250px, 30vw, 360px);
+  height: clamp(250px, 30vw, 360px);
   display: grid;
   place-items: center;
 }

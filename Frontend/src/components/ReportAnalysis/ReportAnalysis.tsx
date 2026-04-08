@@ -1,11 +1,5 @@
 import { motion } from "motion/react";
-import {
-  ArrowLeft,
-  Download,
-  Music,
-  Share2,
-  TrendingUp,
-} from "lucide-react";
+import { Music, Share2, TrendingUp } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -89,8 +83,20 @@ type ReportData = {
 interface ReportAnalysisProps {
   songs: Song[];
   artists: Artist[];
+  genreDataOverride?: GenreDatum[];
   errorMsg?: string | null;
   onLogout: () => void;
+  headerActionLabel?: string;
+  heroLabel?: string;
+  heroTitle?: string;
+  heroCopy?: string;
+  showSharePanel?: boolean;
+  shareBusy?: boolean;
+  shareLink?: string | null;
+  shareCreateError?: string | null;
+  shareCopied?: boolean;
+  onCreateShareLink?: () => void;
+  onCopyShareLink?: () => void;
 }
 
 const COLORS = ["#a855f7", "#ec4899", "#8b5cf6", "#f472b6", "#9333ea"];
@@ -110,7 +116,8 @@ const LOW_POPULARITY_THRESHOLD = 45;
 
 const clampPercent = (value?: number) => {
   if (value === undefined || Number.isNaN(value)) return undefined;
-  return Math.max(0, Math.min(100, Math.round(value)));
+  const normalized = value >= 0 && value <= 1 ? value * 100 : value;
+  return Math.max(0, Math.min(100, Math.round(normalized)));
 };
 
 const getArtistNames = (song?: Song) => song?.artist;
@@ -170,6 +177,11 @@ const deriveAuraType = (audioFeatures: AudioFeatureSummary): AuraType | undefine
     tempo,
     popularity,
   } = audioFeatures;
+  const hasAnalysis = Object.values(audioFeatures).some(
+    (value) => value !== undefined
+  );
+
+  if (!hasAnalysis) return undefined;
 
   if (popularity !== undefined && popularity <= LOW_POPULARITY_THRESHOLD) {
     return {
@@ -246,13 +258,49 @@ const deriveAuraType = (audioFeatures: AudioFeatureSummary): AuraType | undefine
     };
   }
 
-  return undefined;
+  if (
+    energy !== undefined &&
+    happiness !== undefined &&
+    energy >= MODERATE_THRESHOLD &&
+    happiness < HIGH_THRESHOLD
+  ) {
+    return {
+      name: "Neon Current",
+      description:
+        "Your listening data leans toward forward motion, drive, and polished momentum. You connect with tracks that keep energy moving without tipping fully into chaos or pure sunshine. While others settle into softer moods or maximal hype, you live in the electric middle ground where rhythm, edge, and confidence stay in balance. Your music glows in cobalt, magenta, and city-light chrome. Welcome to your Neon Current aura.",
+    };
+  }
+
+  if (
+    happiness !== undefined &&
+    acousticness !== undefined &&
+    happiness >= MODERATE_THRESHOLD &&
+    acousticness >= MODERATE_THRESHOLD
+  ) {
+    return {
+      name: "Amber Glow",
+      description:
+        "Your listening data points to warmth, ease, and emotionally open songs with a softer texture. You connect with music that feels inviting and human, leaning toward comfort without losing brightness. While others chase extremes, you gravitate toward balance, melody, and a sense of calm lift. Your music settles into amber, peach, and late-sunset gold. Welcome to your Amber Glow aura.",
+    };
+  }
+
+  return {
+    name: "Prism Drift",
+    description:
+      "Your listening data blends multiple moods instead of locking into a single extreme. You move between energy, emotion, texture, and tempo in a way that feels fluid and exploratory. While others stay in one lane, you drift across contrasting sounds that still fit your taste. Your music refracts through layered color, shifting with the moment instead of staying fixed. Welcome to your Prism Drift aura.",
+  };
 };
 
-const buildReportData = (songs: Song[], artists: Artist[]): ReportData => {
+const buildReportData = (
+  songs: Song[],
+  artists: Artist[],
+  genreDataOverride?: GenreDatum[]
+): ReportData => {
   const topSong = songs[0];
   const topArtist = artists[0];
-  const topGenres = buildGenreData(artists);
+  const topGenres = genreDataOverride?.length
+    ? genreDataOverride.slice(0, 5)
+    : buildGenreData(artists);
   const audioMetricsFromSongs = songs
     .map((song) => song.soundnet_analysis)
     .filter(Boolean);
@@ -298,8 +346,20 @@ const buildReportData = (songs: Song[], artists: Artist[]): ReportData => {
 export default function ReportAnalysis({
   songs,
   artists,
+  genreDataOverride,
   errorMsg,
   onLogout,
+  headerActionLabel = "Logout",
+  heroLabel,
+  heroTitle,
+  heroCopy,
+  showSharePanel = true,
+  shareBusy = false,
+  shareLink = null,
+  shareCreateError = null,
+  shareCopied = false,
+  onCreateShareLink,
+  onCopyShareLink,
 }: ReportAnalysisProps) {
   const {
     topArtist,
@@ -310,34 +370,25 @@ export default function ReportAnalysis({
     topGenres,
     audioFeatures,
     auraType,
-  } = buildReportData(songs, artists);
+  } = buildReportData(songs, artists, genreDataOverride);
 
   const hasAnyData = songs.length > 0 || artists.length > 0;
+  const resolvedHeroLabel = heroLabel ?? "Report analysis";
+  const resolvedHeroTitle = heroTitle ?? "Your AudioAura";
+  const resolvedHeroCopy =
+    heroCopy ??
+    (hasAnyData
+      ? "The data and analysis in this report are derived from your current top tracks, artists, and genres."
+      : "Connect Spotify data to generate your report. Until then, this page shows empty states instead of placeholder mock content.");
 
   return (
     <div className="report-screen">
       <div className="report-screen__backdrop" />
 
       <header className="report-screen__header">
-        <button type="button" className="report-button report-button--ghost">
-          <ArrowLeft size={16} />
-          Back
-        </button>
-
         <div className="report-screen__header-actions">
-          <button type="button" className="report-button report-button--secondary">
-            <Share2 size={16} />
-            Share
-          </button>
-          <button
-            type="button"
-            className="report-button report-button--secondary"
-          >
-            <Download size={16} />
-            Download
-          </button>
           <button type="button" className="report-button" onClick={onLogout}>
-            Logout
+            {headerActionLabel}
           </button>
         </div>
       </header>
@@ -349,13 +400,9 @@ export default function ReportAnalysis({
           transition={{ duration: 0.6 }}
           className="report-screen__hero"
         >
-          <p className="report-section-label">Report analysis</p>
-          <h1>Your AudioAura</h1>
-          <p className="report-screen__hero-copy">
-            {hasAnyData
-              ? "The data and analysis in this report are derived from your current top tracks, artists, and genres."
-              : "Connect Spotify data to generate your report. Until then, this page shows empty states instead of placeholder mock content."}
-          </p>
+          <p className="report-section-label">{resolvedHeroLabel}</p>
+          <h1>{resolvedHeroTitle}</h1>
+          <p className="report-screen__hero-copy">{resolvedHeroCopy}</p>
         </motion.section>
 
         {errorMsg && <p className="report-screen__error">{errorMsg}</p>}
@@ -412,10 +459,10 @@ export default function ReportAnalysis({
           <section className="report-aura-card report-aura-card--empty">
             <div className="report-aura-content">
               <p className="report-section-label">Your AudioAura Type</p>
-              <h2 className="report-aura-title">Analysis not available yet</h2>
+              <h2 className="report-aura-title">Aura data unavailable</h2>
               <p className="report-aura-description">
-                Your aura type will appear here once the real analysis pipeline
-                is connected to this report.
+                We could not derive an aura type because this report does not
+                include enough analyzed audio features yet.
               </p>
             </div>
           </section>
@@ -590,6 +637,62 @@ export default function ReportAnalysis({
             </div>
           </motion.section>
         </div>
+
+        {showSharePanel && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.75, duration: 0.6 }}
+            className="report-panel"
+          >
+            <div className="report-panel__header">
+              <div>
+                <p className="report-section-label">Share</p>
+                <h2>Share your report</h2>
+              </div>
+            </div>
+
+            <p className="report-share-copy">
+              Generate a link for your current top artists and genres.
+            </p>
+
+            <div className="report-share-actions">
+              <button
+                type="button"
+                className="report-button"
+                onClick={onCreateShareLink}
+                disabled={!hasAnyData || shareBusy || !onCreateShareLink}
+              >
+                <Share2 size={16} />
+                {shareBusy ? "Creating..." : "Create share link"}
+              </button>
+
+              {shareLink && (
+                <>
+                  <input
+                    className="report-share-input"
+                    readOnly
+                    value={shareLink}
+                  />
+                  <button
+                    type="button"
+                    className="report-button report-button--secondary"
+                    onClick={onCopyShareLink}
+                    disabled={!onCopyShareLink}
+                  >
+                    {shareCopied ? "Copied" : "Copy"}
+                  </button>
+                </>
+              )}
+            </div>
+
+            {shareCreateError && (
+              <p className="report-screen__error report-screen__error--inline">
+                {shareCreateError}
+              </p>
+            )}
+          </motion.section>
+        )}
       </div>
     </div>
   );
