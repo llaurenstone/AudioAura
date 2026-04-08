@@ -5,6 +5,7 @@ import LoginPage from "./components/LoginPage/LoginPage";
 import ReportAnalysis from "./components/ReportAnalysis/ReportAnalysis";
 
 type Phase = "idle" | "fetching" | "ready" | "error";
+type GenreStatsResponse = Record<string, number>;
 
 function App() {
   const [status, setStatus] = useState<"loading" | "logged-in" | "logged-out">(
@@ -15,6 +16,7 @@ function App() {
 
   const [songs, setSongs] = useState<any[]>([]);
   const [artists, setArtists] = useState<any[]>([]);
+  const [genreStats, setGenreStats] = useState<Array<{ name: string; percentage: number }>>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // loading progress shown on loadingscreen
@@ -63,6 +65,7 @@ function App() {
       setPhase("idle");
       setSongs([]);
       setArtists([]);
+      setGenreStats([]);
       setErrorMsg(null);
       setProgressSafe(0);
     }
@@ -97,11 +100,14 @@ function App() {
         setPhase("fetching");
         fakeId = startProgress();
 
-        const [tracksRes, artistsRes] = await Promise.all([
+        const [tracksRes, artistsRes, genreStatsRes] = await Promise.all([
           fetch("https://127.0.0.1:5001/auth/spotify/top-tracks", {
             credentials: "include",
           }),
           fetch("https://127.0.0.1:5001/auth/spotify/top-artists", {
+            credentials: "include",
+          }),
+          fetch("https://127.0.0.1:5001/auth/spotify/genre-stats", {
             credentials: "include",
           }),
         ]);
@@ -110,16 +116,29 @@ function App() {
           throw new Error(`Top tracks failed: ${tracksRes.status}`);
         if (!artistsRes.ok)
           throw new Error(`Top artists failed: ${artistsRes.status}`);
+        if (!genreStatsRes.ok)
+          throw new Error(`Genre stats failed: ${genreStatsRes.status}`);
 
-        const [tracksData, artistsData] = await Promise.all([
+        const [tracksData, artistsData, genreStatsData] = await Promise.all([
           tracksRes.json(),
           artistsRes.json(),
+          genreStatsRes.json(),
         ]);
 
         if (cancelled) return;
 
         setSongs(tracksData.items || tracksData);
         setArtists(artistsData.items || artistsData);
+        const normalizedGenreStats = Object.entries(
+          (genreStatsData.items || genreStatsData || {}) as GenreStatsResponse
+        )
+          .map(([name, percentage]) => ({
+            name,
+            percentage: Math.round(Number(percentage) || 0),
+          }))
+          .sort((left, right) => right.percentage - left.percentage);
+
+        setGenreStats(normalizedGenreStats);
 
         if (fakeId) window.clearInterval(fakeId);
         setProgressSafe(100);
@@ -158,6 +177,7 @@ function App() {
     <ReportAnalysis
       songs={songs}
       artists={artists}
+      genreStats={genreStats}
       errorMsg={phase === "error" ? errorMsg : null}
       onLogout={logout}
     />
