@@ -1,5 +1,10 @@
 import { motion } from "motion/react";
-import { Sparkles } from "lucide-react";
+import aura1 from "../../assets/aura1.png";
+import aura2 from "../../assets/aura2.png";
+import aura3 from "../../assets/aura3.png";
+import aura4 from "../../assets/aura4.png";
+import aura5 from "../../assets/aura5.png";
+import aura6 from "../../assets/aura6.png";
 
 interface AuraTypeCardProps {
   name: string;
@@ -7,24 +12,51 @@ interface AuraTypeCardProps {
   personality?: string[];
 }
 
+const auraImagesByName: Record<string, string> = {
+  "Lunar Dreamer": aura1,
+  "Solar Bloom": aura2,
+  "Inferno Pulse": aura3,
+  "Rose Velvet": aura4,
+  "Sage Drift": aura5,
+  "Midnight Eclipse": aura6,
+};
+
+const auraThemeClassByName: Record<string, string> = {
+  "Lunar Dreamer": "report-aura-card--lunar-dreamer",
+  "Solar Bloom": "report-aura-card--solar-bloom",
+  "Inferno Pulse": "report-aura-card--inferno-pulse",
+  "Rose Velvet": "report-aura-card--rose-velvet",
+  "Sage Drift": "report-aura-card--sage-drift",
+  "Midnight Eclipse": "report-aura-card--midnight-eclipse",
+};
+
 export function AuraTypeCard({
   name,
   description,
   personality,
 }: AuraTypeCardProps) {
+  const auraImage = auraImagesByName[name];
+  const auraThemeClass = auraThemeClassByName[name] ?? "";
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="report-aura-card"
+      className={`report-aura-card ${auraThemeClass}`.trim()}
     >
       <div className="report-aura-overlay" />
 
       <div className="report-aura-content">
         <div className="report-aura-header">
           <div className="report-aura-icon-wrap">
-            <Sparkles className="report-aura-icon" />
+            {auraImage ? (
+              <img
+                className="report-aura-icon"
+                src={auraImage}
+                alt={`${name} aura icon`}
+              />
+            ) : null}
           </div>
           <div>
             <p className="report-section-label">Your AudioAura Type</p>

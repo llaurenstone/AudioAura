@@ -101,4 +101,49 @@ router.get("/top-artists", async (req, res) => {
     }
 });
 
+router.get("/genre-stats", async (req, res) => {
+  const token = req.session?.accessToken;
+  if (!token) return res.status(401).json({ error: "Not logged in" });
+
+  try {
+    const resp = await fetch("https://api.spotify.com/v1/me/top/artists?time_range=short_term&limit=5", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const text = await resp.text();
+    let data;
+    try { data = JSON.parse(text); } 
+    catch { return res.status(500).json({ error: "Bad Spotify Response" }); }
+
+    if (!resp.ok) return res.status(resp.status).json(data);
+
+    const genreCounts = {};
+    let totalGenres = 0;
+
+    if (data.items && Array.isArray(data.items)) {
+      for (const artist of data.items) {
+        for (const genre of artist.genres) {
+          genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+          totalGenres++;
+        }
+      }
+    }
+
+    if (totalGenres === 0) {
+      return res.json({});
+    }
+    
+    const genrePercentages = {};
+    for (const [genre, count] of Object.entries(genreCounts)) {
+      genrePercentages[genre] = Math.round((count / totalGenres) * 100);
+    }
+
+    res.json(genrePercentages);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

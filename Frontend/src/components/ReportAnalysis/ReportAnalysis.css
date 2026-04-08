@@ -1,7 +1,18 @@
 .report-screen {
+  --report-bg-start: #050816;
+  --report-bg-mid: #16112c;
+  --report-bg-end: #0e2030;
+  --report-glow-1: rgba(168, 85, 247, 0.32);
+  --report-glow-2: rgba(236, 72, 153, 0.22);
+  --report-glow-3: rgba(59, 130, 246, 0.18);
   position: relative;
   min-height: 100vh;
-  background: linear-gradient(140deg, #050816 0%, #16112c 54%, #0e2030 100%);
+  background: linear-gradient(
+    140deg,
+    var(--report-bg-start) 0%,
+    var(--report-bg-mid) 54%,
+    var(--report-bg-end) 100%
+  );
   color: #f8f7ff;
   overflow: hidden;
 }
@@ -10,10 +21,64 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 12% 16%, rgba(168, 85, 247, 0.32), transparent 24%),
-    radial-gradient(circle at 88% 18%, rgba(236, 72, 153, 0.22), transparent 22%),
-    radial-gradient(circle at 62% 78%, rgba(59, 130, 246, 0.18), transparent 24%);
+    radial-gradient(circle at 12% 16%, var(--report-glow-1), transparent 24%),
+    radial-gradient(circle at 88% 18%, var(--report-glow-2), transparent 22%),
+    radial-gradient(circle at 62% 78%, var(--report-glow-3), transparent 24%);
   pointer-events: none;
+}
+
+.report-screen--lunar-dreamer {
+  --report-bg-start: #040816;
+  --report-bg-mid: #111b42;
+  --report-bg-end: #091327;
+  --report-glow-1: rgba(76, 103, 230, 0.34);
+  --report-glow-2: rgba(39, 74, 170, 0.26);
+  --report-glow-3: rgba(112, 129, 255, 0.2);
+}
+
+.report-screen--solar-bloom {
+  --report-bg-start: #1a1002;
+  --report-bg-mid: #3a2407;
+  --report-bg-end: #241204;
+  --report-glow-1: rgba(250, 204, 21, 0.34);
+  --report-glow-2: rgba(251, 146, 60, 0.28);
+  --report-glow-3: rgba(255, 227, 138, 0.18);
+}
+
+.report-screen--inferno-pulse {
+  --report-bg-start: #170608;
+  --report-bg-mid: #341016;
+  --report-bg-end: #27110a;
+  --report-glow-1: rgba(239, 68, 68, 0.36);
+  --report-glow-2: rgba(249, 115, 22, 0.3);
+  --report-glow-3: rgba(251, 191, 36, 0.16);
+}
+
+.report-screen--rose-velvet {
+  --report-bg-start: #180910;
+  --report-bg-mid: #371529;
+  --report-bg-end: #26101a;
+  --report-glow-1: rgba(244, 114, 182, 0.32);
+  --report-glow-2: rgba(251, 182, 206, 0.22);
+  --report-glow-3: rgba(255, 220, 235, 0.14);
+}
+
+.report-screen--sage-drift {
+  --report-bg-start: #08120d;
+  --report-bg-mid: #193126;
+  --report-bg-end: #111f17;
+  --report-glow-1: rgba(52, 211, 153, 0.26);
+  --report-glow-2: rgba(132, 204, 22, 0.22);
+  --report-glow-3: rgba(187, 247, 208, 0.14);
+}
+
+.report-screen--midnight-eclipse {
+  --report-bg-start: #090511;
+  --report-bg-mid: #1a1032;
+  --report-bg-end: #12081f;
+  --report-glow-1: rgba(91, 33, 182, 0.34);
+  --report-glow-2: rgba(124, 58, 237, 0.24);
+  --report-glow-3: rgba(192, 132, 252, 0.14);
 }
 
 .report-screen__header,
@@ -187,14 +252,21 @@
 }
 
 .report-aura-card {
+  --aura-glow-start: rgba(168, 85, 247, 0.16);
+  --aura-glow-end: rgba(236, 72, 153, 0.16);
+  --aura-overlay-start: rgba(168, 85, 247, 0.18);
+  --aura-overlay-end: rgba(236, 72, 153, 0.18);
+  --aura-surface-tint: rgba(20, 12, 42, 0.78);
+  --aura-icon-bg: rgba(255, 255, 255, 0.12);
+  --aura-star-color: rgba(233, 213, 255, 0.7);
   position: relative;
   overflow: hidden;
   border-radius: 32px;
   padding: 32px;
   margin-bottom: 24px;
   background:
-    linear-gradient(135deg, rgba(168, 85, 247, 0.16), rgba(236, 72, 153, 0.16)),
-    rgba(10, 12, 26, 0.68);
+    linear-gradient(135deg, var(--aura-glow-start), var(--aura-glow-end)),
+    var(--aura-surface-tint);
 }
 
 .report-aura-overlay {
@@ -202,9 +274,9 @@
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(168, 85, 247, 0.12),
+    var(--aura-overlay-start),
     transparent 45%,
-    rgba(236, 72, 153, 0.12)
+    var(--aura-overlay-end)
   );
 }
 
@@ -214,16 +286,19 @@
 }
 
 .report-aura-icon-wrap {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--aura-icon-bg);
   display: grid;
   place-items: center;
 }
 
 .report-aura-icon {
-  color: #e9d5ff;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  display: block;
 }
 
 .report-aura-title {
@@ -254,7 +329,67 @@
 .report-aura-trait-dot,
 .report-aura-star {
   border-radius: 999px;
-  background: rgba(233, 213, 255, 0.7);
+  background: var(--aura-star-color);
+}
+
+.report-aura-card--lunar-dreamer {
+  --aura-glow-start: rgba(56, 72, 174, 0.34);
+  --aura-glow-end: rgba(25, 38, 112, 0.34);
+  --aura-overlay-start: rgba(92, 108, 219, 0.24);
+  --aura-overlay-end: rgba(34, 48, 142, 0.22);
+  --aura-surface-tint: rgba(8, 14, 38, 0.82);
+  --aura-icon-bg: rgba(122, 146, 255, 0.18);
+  --aura-star-color: rgba(175, 196, 255, 0.7);
+}
+
+.report-aura-card--solar-bloom {
+  --aura-glow-start: rgba(250, 204, 21, 0.34);
+  --aura-glow-end: rgba(245, 158, 11, 0.32);
+  --aura-overlay-start: rgba(253, 224, 71, 0.26);
+  --aura-overlay-end: rgba(251, 191, 36, 0.22);
+  --aura-surface-tint: rgba(43, 24, 4, 0.82);
+  --aura-icon-bg: rgba(255, 222, 89, 0.2);
+  --aura-star-color: rgba(255, 234, 164, 0.72);
+}
+
+.report-aura-card--inferno-pulse {
+  --aura-glow-start: rgba(239, 68, 68, 0.34);
+  --aura-glow-end: rgba(249, 115, 22, 0.34);
+  --aura-overlay-start: rgba(251, 113, 133, 0.24);
+  --aura-overlay-end: rgba(251, 146, 60, 0.22);
+  --aura-surface-tint: rgba(40, 11, 14, 0.82);
+  --aura-icon-bg: rgba(255, 153, 92, 0.18);
+  --aura-star-color: rgba(255, 211, 180, 0.72);
+}
+
+.report-aura-card--rose-velvet {
+  --aura-glow-start: rgba(244, 114, 182, 0.3);
+  --aura-glow-end: rgba(251, 182, 206, 0.28);
+  --aura-overlay-start: rgba(249, 168, 212, 0.24);
+  --aura-overlay-end: rgba(253, 205, 225, 0.22);
+  --aura-surface-tint: rgba(52, 19, 39, 0.8);
+  --aura-icon-bg: rgba(255, 205, 229, 0.18);
+  --aura-star-color: rgba(255, 225, 239, 0.72);
+}
+
+.report-aura-card--sage-drift {
+  --aura-glow-start: rgba(52, 211, 153, 0.28);
+  --aura-glow-end: rgba(132, 204, 22, 0.24);
+  --aura-overlay-start: rgba(110, 231, 183, 0.22);
+  --aura-overlay-end: rgba(163, 230, 53, 0.18);
+  --aura-surface-tint: rgba(17, 36, 27, 0.82);
+  --aura-icon-bg: rgba(167, 243, 208, 0.16);
+  --aura-star-color: rgba(217, 249, 229, 0.68);
+}
+
+.report-aura-card--midnight-eclipse {
+  --aura-glow-start: rgba(91, 33, 182, 0.34);
+  --aura-glow-end: rgba(76, 29, 149, 0.28);
+  --aura-overlay-start: rgba(139, 92, 246, 0.2);
+  --aura-overlay-end: rgba(67, 20, 120, 0.24);
+  --aura-surface-tint: rgba(16, 8, 30, 0.84);
+  --aura-icon-bg: rgba(167, 139, 250, 0.16);
+  --aura-star-color: rgba(221, 207, 253, 0.72);
 }
 
 .report-aura-trait-dot {
@@ -351,6 +486,10 @@
 
 .report-chart {
   height: 320px;
+}
+
+.report-chart--pie {
+  min-height: 360px;
 }
 
 .report-screen__split {
