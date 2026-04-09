@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
-import LoadingScreen from "./LoadingScreen";
+import LoadingScreen from "./components/LoadingScreen/LoadingScreen";
 import LoginPage from "./components/LoginPage/LoginPage";
 import ReportAnalysis from "./components/ReportAnalysis/ReportAnalysis";
 
