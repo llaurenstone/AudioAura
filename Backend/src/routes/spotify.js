@@ -14,6 +14,8 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const SUMMARY_CACHE_TTL_MS = 1000 * 60 * 60 * 24;
 const summaryCache = new Map();
 
+const VALID_TIME_RANGES = ["short_term", "medium_term", "long_term"];
+
 const getCacheKey = (token, scope) => `${scope}:${token}`;
 
 const readCache = (key) => {
@@ -45,121 +47,125 @@ const purgeExpiredCache = () => {
 setInterval(purgeExpiredCache, 60 * 60 * 1000).unref?.();
 
 router.get("/top-tracks", async (req, res) => {
-    const token = req.session?.accessToken;
-    if (!token) return res.status(401).json({ error: "Not logged in" });
+  const token = req.session?.accessToken;
+  if (!token) return res.status(401).json({ error: "Not logged in" });
 
-    const cacheKey = getCacheKey(token, "top-tracks");
-    const cached = readCache(cacheKey);
-    if (cached) {
-      return res.json(cached);
-    }
-  
-    try {
-      const resp = await fetch("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=5", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const text = await resp.text();
-      let data; 
+  const timeRange = VALID_TIME_RANGES.includes(req.query.time_range)
+    ? req.query.time_range
+    : "short_term";
 
-      try {data = JSON.parse(text);} 
+  const cacheKey = getCacheKey(token, `top-tracks:${timeRange}`);
+  const cached = readCache(cacheKey);
+  if (cached) return res.json(cached);
 
-      catch { return res.status(500).json({error: "Bad Spotify Response"});}
+  try {
+    const resp = await fetch(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=5`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const text = await resp.text();
+    let data;
 
-      if (!resp.ok) return res.status(resp.status).json(data);
+    try { data = JSON.parse(text); }
+    catch { return res.status(500).json({ error: "Bad Spotify Response" }); }
 
-      if (data.items && Array.isArray(data.items)) {
-        const analyzedItems = [];
+    if (!resp.ok) return res.status(resp.status).json(data);
 
-        for (const item of data.items) {
-          try {
-            const analysisResp = await fetch(`https://track-analysis.p.rapidapi.com/pktx/spotify/${item.id}`, {
-                method: "GET",
-                headers: {
-                    "x-rapidapi-key": apikey, 
-                    "x-rapidapi-host": "track-analysis.p.rapidapi.com"
-                }
-            });
-            const analysisData = analysisResp.ok ? await analysisResp.json() : null;
+    if (data.items && Array.isArray(data.items)) {
+      const analyzedItems = [];
 
-            analyzedItems.push({
-              id: item.id,
-              name: item.name,
-              artist: item.artists[0]?.name,
-              image: item.album?.images[0]?.url, 
-              soundnet_analysis: analysisData
+      for (const item of data.items) {
+        try {
+          const analysisResp = await fetch(`https://track-analysis.p.rapidapi.com/pktx/spotify/${item.id}`, {
+            method: "GET",
+            headers: {
+              "x-rapidapi-key": apikey,
+              "x-rapidapi-host": "track-analysis.p.rapidapi.com",
+            },
           });
-          
-            await delay(1100); 
+          const analysisData = analysisResp.ok ? await analysisResp.json() : null;
 
-          } catch (innerErr) {
-            console.error(`Failed: ${item.name}`);
-            analyzedItems.push(item);
-          }
+          analyzedItems.push({
+            id: item.id,
+            name: item.name,
+            artist: item.artists[0]?.name,
+            image: item.album?.images[0]?.url,
+            soundnet_analysis: analysisData,
+          });
+
+          await delay(1100);
+        } catch (innerErr) {
+          console.error(`Failed: ${item.name}`);
+          analyzedItems.push(item);
         }
-
-        data.items = analyzedItems;
       }
 
-      writeCache(cacheKey, data);
-      res.json(data);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: err.message });
+      data.items = analyzedItems;
     }
+
+    writeCache(cacheKey, data);
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.get("/top-artists", async (req, res) => {
-    const token = req.session?.accessToken;
-    if (!token) return res.status(401).json({ error: "Not logged in" });
+  const token = req.session?.accessToken;
+  if (!token) return res.status(401).json({ error: "Not logged in" });
 
-    const cacheKey = getCacheKey(token, "top-artists");
-    const cached = readCache(cacheKey);
-    if (cached) {
-      return res.json(cached);
-    }
-  
+  const timeRange = VALID_TIME_RANGES.includes(req.query.time_range)
+    ? req.query.time_range
+    : "short_term";
+
+  const cacheKey = getCacheKey(token, `top-artists:${timeRange}`);
+  const cached = readCache(cacheKey);
+  if (cached) return res.json(cached);
+
+  try {
+    const resp = await fetch(`https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}&limit=5`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const text = await resp.text();
+    let data;
     try {
-      const resp = await fetch("https://api.spotify.com/v1/me/top/artists?time_range=short_term&limit=5", {
-        headers: { Authorization: `Bearer ${token}` },
+      data = JSON.parse(text);
+    } catch {
+      console.error("Spotify returned non-JSON:", text);
+      return res.status(500).json({
+        error: "Spotify returned non-JSON response",
+        raw: text,
+        status: resp.status,
       });
-  
-      const text = await resp.text(); 
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        console.error("Spotify returned non-JSON:", text);
-        return res.status(500).json({
-          error: "Spotify returned non-JSON response",
-          raw: text,
-          status: resp.status,
-        });
-      }
-  
-      if (!resp.ok) {
-        return res.status(resp.status).json(data);
-      }
-
-      writeCache(cacheKey, data);
-      res.json(data);
-    } catch (err) {
-      console.error("Fetch failed:", err);
-      res.status(500).json({ error: "Failed to fetch top tracks", details: err.message });
     }
+
+    if (!resp.ok) return res.status(resp.status).json(data);
+
+    writeCache(cacheKey, data);
+    res.json(data);
+  } catch (err) {
+    console.error("Fetch failed:", err);
+    res.status(500).json({ error: "Failed to fetch top artists", details: err.message });
+  }
 });
 
 router.get("/genre-stats", async (req, res) => {
   const token = req.session?.accessToken;
   if (!token) return res.status(401).json({ error: "Not logged in" });
 
+  const timeRange = VALID_TIME_RANGES.includes(req.query.time_range)
+    ? req.query.time_range
+    : "short_term";
+
   try {
-    const resp = await fetch("https://api.spotify.com/v1/me/top/artists?time_range=short_term&limit=5", {
+    const resp = await fetch(`https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}&limit=5`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
     const text = await resp.text();
     let data;
-    try { data = JSON.parse(text); } 
+    try { data = JSON.parse(text); }
     catch { return res.status(500).json({ error: "Bad Spotify Response" }); }
 
     if (!resp.ok) return res.status(resp.status).json(data);
@@ -176,17 +182,14 @@ router.get("/genre-stats", async (req, res) => {
       }
     }
 
-    if (totalGenres === 0) {
-      return res.json({});
-    }
-    
+    if (totalGenres === 0) return res.json({});
+
     const genrePercentages = {};
     for (const [genre, count] of Object.entries(genreCounts)) {
       genrePercentages[genre] = Math.round((count / totalGenres) * 100);
     }
 
     res.json(genrePercentages);
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

@@ -139,7 +139,7 @@ function App() {
   const [shareBusy, setShareBusy] = useState(false);
   const [shareCreateError, setShareCreateError] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
-
+  const [timeRange, setTimeRange] = useState("short_term");
   // loading progress shown on loadingscreen
   const [progress, setProgress] = useState(0);
   const progressRef = useRef(0);
@@ -301,10 +301,10 @@ function App() {
         fakeId = startProgress();
 
         const [tracksRes, artistsRes, profileRes] = await Promise.all([
-          fetch(`${API_BASE}/auth/spotify/top-tracks`, {
+          fetch(`${API_BASE}/auth/spotify/top-tracks?time_range=${timeRange}`, {
             credentials: "include",
           }),
-          fetch(`${API_BASE}/auth/spotify/top-artists`, {
+          fetch(`${API_BASE}/auth/spotify/top-artists?time_range=${timeRange}`, {
             credentials: "include",
           }),
           fetch(`${API_BASE}/auth/spotify/me`, {
@@ -361,7 +361,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [status, isShareMode]);
+  }, [status, isShareMode, timeRange]);
 
   useEffect(() => {
     if (!shareId) return;
@@ -530,6 +530,8 @@ function App() {
       shareCopied={shareCopied}
       onCreateShareLink={createShareLink}
       onCopyShareLink={copyShareLink}
+      timeRange={timeRange}
+      onTimeRangeChange={setTimeRange}
     />
   );
 }

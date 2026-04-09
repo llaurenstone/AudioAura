@@ -97,6 +97,8 @@ interface ReportAnalysisProps {
   shareCopied?: boolean;
   onCreateShareLink?: () => void;
   onCopyShareLink?: () => void;
+  timeRange?: string;
+  onTimeRangeChange?: (range: string) => void;
 }
 
 const COLORS = ["#a855f7", "#ec4899", "#8b5cf6", "#f472b6", "#9333ea"];
@@ -360,6 +362,8 @@ export default function ReportAnalysis({
   shareCopied = false,
   onCreateShareLink,
   onCopyShareLink,
+  timeRange = "short_term",
+  onTimeRangeChange,
 }: ReportAnalysisProps) {
   const {
     topArtist,
@@ -403,6 +407,11 @@ export default function ReportAnalysis({
           <p className="report-section-label">{resolvedHeroLabel}</p>
           <h1>{resolvedHeroTitle}</h1>
           <p className="report-screen__hero-copy">{resolvedHeroCopy}</p>
+          <div>
+            <button onClick={() => onTimeRangeChange?.("short_term")} disabled={timeRange === "short_term"}>Last 4 weeks</button>
+            <button onClick={() => onTimeRangeChange?.("medium_term")} disabled={timeRange === "medium_term"}>Last 6 months</button>
+            <button onClick={() => onTimeRangeChange?.("long_term")} disabled={timeRange === "long_term"}>All time</button>
+          </div>
         </motion.section>
 
         {errorMsg && <p className="report-screen__error">{errorMsg}</p>}
