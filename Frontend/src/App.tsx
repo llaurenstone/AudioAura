@@ -7,10 +7,16 @@ import ReportAnalysis from "./components/ReportAnalysis/ReportAnalysis";
 type Phase = "idle" | "fetching" | "ready" | "error";
 type SharePhase = "idle" | "loading" | "ready" | "error";
 
+type ShareImage = {
+  url?: string;
+};
+
 type ShareArtist = {
   id?: string;
-  name: string;
+  name?: string;
   image?: string;
+  images?: ShareImage[];
+  genres?: string[];
 };
 
 type ShareGenre = {
@@ -18,12 +24,34 @@ type ShareGenre = {
   count: number;
 };
 
+type ShareSongAnalysis = {
+  tempo?: number;
+  key?: string | number;
+  danceability?: number;
+  energy?: number;
+  happiness?: number;
+  acousticness?: number;
+  popularity?: number;
+};
+
+type ShareSong = {
+  id?: string;
+  name?: string;
+  artist?: string;
+  image?: string;
+  album?: {
+    images?: ShareImage[];
+  };
+  soundnet_analysis?: ShareSongAnalysis;
+};
+
 type SharePayload = {
   id: string;
   createdAt: string;
   displayName?: string;
-  artists: ShareArtist[];
-  genres: ShareGenre[];
+  songs?: ShareSong[];
+  artists?: ShareArtist[];
+  genres?: ShareGenre[];
 };
 
 const API_BASE = "https://127.0.0.1:5001";
@@ -46,6 +74,52 @@ const buildTopGenres = (items: any[], limit = 8): ShareGenre[] => {
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
     .slice(0, limit);
 };
+
+const isDefined = <T,>(value: T | null | undefined): value is T =>
+  value !== null && value !== undefined;
+
+const normalizeSharedArtists = (items: ShareArtist[] = []) =>
+  items
+    .map((artist) => {
+      if (typeof artist.name !== "string" || artist.name.trim().length === 0) {
+        return null;
+      }
+
+      const imageUrl = artist.images?.[0]?.url ?? artist.image;
+      const genres = Array.isArray(artist.genres)
+        ? artist.genres.filter(
+            (genre): genre is string =>
+              typeof genre === "string" && genre.trim().length > 0
+          )
+        : [];
+
+      return {
+        id: artist.id,
+        name: artist.name,
+        genres,
+        images: imageUrl ? [{ url: imageUrl }] : undefined,
+      };
+    })
+    .filter(isDefined);
+
+const normalizeSharedSongs = (items: ShareSong[] = []) =>
+  items
+    .map((song) => {
+      if (typeof song.name !== "string" || song.name.trim().length === 0) {
+        return null;
+      }
+
+      const imageUrl = song.album?.images?.[0]?.url ?? song.image;
+
+      return {
+        id: song.id,
+        name: song.name,
+        artist: song.artist,
+        album: imageUrl ? { images: [{ url: imageUrl }] } : undefined,
+        soundnet_analysis: song.soundnet_analysis,
+      };
+    })
+    .filter(isDefined);
 
 function App() {
   const [status, setStatus] = useState<"loading" | "logged-in" | "logged-out">(
@@ -81,6 +155,29 @@ function App() {
 
   const isShareMode = Boolean(shareId);
   const topGenres = useMemo(() => buildTopGenres(artists), [artists]);
+  const sharedArtists = useMemo(
+    () => normalizeSharedArtists(shareData?.artists ?? []),
+    [shareData]
+  );
+  const sharedSongs = useMemo(
+    () => normalizeSharedSongs(shareData?.songs ?? []),
+    [shareData]
+  );
+  const sharedGenreData = useMemo(() => {
+    const genres = shareData?.genres ?? [];
+    if (!genres.length) return undefined;
+
+    const total = genres.reduce((sum, genre) => sum + genre.count, 0);
+    if (!total) return undefined;
+
+    return genres
+      .map((genre) => ({
+        name: genre.name,
+        percentage: Math.max(1, Math.round((genre.count / total) * 100)),
+      }))
+      .sort((left, right) => right.percentage - left.percentage)
+      .slice(0, 5);
+  }, [shareData]);
 
   const shareDateLabel = useMemo(() => {
     if (!shareData?.createdAt) return null;
@@ -92,6 +189,34 @@ function App() {
       day: "numeric",
     });
   }, [shareData]);
+
+  const sharedHeroTitle = useMemo(() => {
+    if (!shareData?.displayName) return "Shared AudioAura";
+
+    return shareData.displayName.endsWith("s")
+      ? `${shareData.displayName}' AudioAura`
+      : `${shareData.displayName}'s AudioAura`;
+  }, [shareData]);
+
+  const sharedHeroCopy = useMemo(() => {
+    if (sharePhase === "error") {
+      return "This shared report is not available anymore. Open AudioAura to generate a fresh report link.";
+    }
+
+    if (shareData?.displayName && shareDateLabel) {
+      return `${shareData.displayName} shared this AudioAura report on ${shareDateLabel}. The page uses the same layout as the original report and reflects the stats captured when the link was created.`;
+    }
+
+    if (shareData?.displayName) {
+      return `${shareData.displayName} shared this AudioAura report. The page uses the same layout as the original report and reflects the stats captured when the link was created.`;
+    }
+
+    if (shareDateLabel) {
+      return `This shared AudioAura report was captured on ${shareDateLabel} and uses the same layout as the original report page.`;
+    }
+
+    return "This shared AudioAura report uses the same layout as the original report page and reflects the stats captured when the link was created.";
+  }, [shareData, shareDateLabel, sharePhase]);
 
   const setProgressSafe = (updater: number | ((prev: number) => number)) => {
     const next =
@@ -276,7 +401,7 @@ function App() {
 
   const createShareLink = async () => {
     if (shareBusy) return;
-    if (artists.length === 0 && topGenres.length === 0) {
+    if (songs.length === 0 && artists.length === 0 && topGenres.length === 0) {
       setShareCreateError("No stats available to share yet.");
       return;
     }
@@ -287,10 +412,22 @@ function App() {
 
     try {
       const payload = {
+        songs: songs.map((song) => ({
+          id: song?.id,
+          name: song?.name,
+          artist: song?.artist,
+          album: song?.album,
+          image: song?.image ?? song?.album?.images?.[0]?.url,
+          soundnet_analysis: song?.soundnet_analysis,
+        })),
         artists: artists.map((artist) => ({
           id: artist?.id,
           name: artist?.name,
           image: artist?.images?.[0]?.url,
+          images: artist?.images?.map((image: any) => ({
+            url: image?.url,
+          })),
+          genres: artist?.genres,
         })),
         genres: topGenres,
         displayName: profileName ?? undefined,
@@ -347,94 +484,29 @@ function App() {
     }
   };
 
+  const openAudioAuraHome = () => {
+    window.location.href = "/";
+  };
+
   // ===== Render =====
   if (isShareMode) {
+    if (sharePhase === "idle" || sharePhase === "loading") {
+      return <LoadingScreen progress={24} />;
+    }
+
     return (
-      <div className="page">
-        <div className="card">
-          <div className="card-header">
-            <div>
-              <h1>Shared AudioAura</h1>
-              <p className="subtitle">Favorite artists and genre stats.</p>
-            </div>
-            <button
-              className="button-ghost"
-              onClick={() => (window.location.href = "/")}
-            >
-              Open AudioAura
-            </button>
-          </div>
-
-          {(sharePhase === "idle" || sharePhase === "loading") && (
-            <p className="muted">Loading shared stats...</p>
-          )}
-
-          {sharePhase === "error" && (
-            <p className="error-text">
-              {shareViewError ?? "Share not available."}
-            </p>
-          )}
-
-          {sharePhase === "ready" && shareData && (
-            <>
-              {(shareData.displayName || shareDateLabel) && (
-                <div className="share-meta">
-                  {shareData.displayName
-                    ? `Shared by ${shareData.displayName}`
-                    : "Shared stats"}
-                  {shareDateLabel ? ` - ${shareDateLabel}` : ""}
-                </div>
-              )}
-
-              <section className="section">
-                <h2>Top Artists</h2>
-                {shareData.artists.length === 0 ? (
-                  <p className="muted">No artists were shared.</p>
-                ) : (
-                  <ul className="stat-list">
-                    {shareData.artists.map((artist, i) => (
-                      <li key={artist.id || `${artist.name}-${i}`}>
-                        <div className="artist-row">
-                          <span className="rank">
-                            {String(i + 1).padStart(2, "0")}
-                          </span>
-                          {artist.image && (
-                            <img
-                              className="artist-avatar"
-                              src={artist.image}
-                              alt=""
-                            />
-                          )}
-                          <span className="artist-name">{artist.name}</span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-
-              <section className="section">
-                <h2>Top Genres</h2>
-                {shareData.genres.length === 0 ? (
-                  <p className="muted">No genres were shared.</p>
-                ) : (
-                  <div className="genre-grid">
-                    {shareData.genres.map((genre) => (
-                      <div key={genre.name} className="genre-card">
-                        <div className="genre-name">{genre.name}</div>
-                        <div className="genre-count">
-                          {genre.count} artist
-                          {genre.count === 1 ? "" : "s"}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-            </>
-          )}
-        </div>
-      </div>
+      <ReportAnalysis
+        songs={sharedSongs}
+        artists={sharedArtists}
+        genreDataOverride={sharedGenreData}
+        errorMsg={sharePhase === "error" ? shareViewError : null}
+        onLogout={openAudioAuraHome}
+        headerActionLabel="Open AudioAura"
+        heroLabel="Shared report"
+        heroTitle={sharedHeroTitle}
+        heroCopy={sharedHeroCopy}
+        showSharePanel={false}
+      />
     );
   }
 
@@ -447,131 +519,18 @@ function App() {
   if (phase === "fetching") return <LoadingScreen progress={progress} />;
 
   return (
-    <div className="page">
-      <div className="card">
-        <div className="card-header">
-          <div>
-            <h1>AudioAura</h1>
-            <p className="subtitle">Your top vibes, ready to share.</p>
-            {profileName && (
-              <p className="welcome">Welcome, {profileName}.</p>
-            )}
-          </div>
-          <button className="button-ghost" onClick={logout}>
-            Logout
-          </button>
-        </div>
-
-        {phase === "error" && (
-          <p className="error-text" style={{ marginTop: 16 }}>
-            {errorMsg ?? "Something went wrong loading your stats."}
-          </p>
-        )}
-
-        <section className="section">
-          <h2>Your Top Songs</h2>
-          <ul className="song-list">
-            {songs.map((song, i) => (
-              <li key={song.id || i} className="song-card">
-                <div>
-                  <strong>{song.name}</strong> -{" "}
-                  {song.artists?.map((a: any) => a.name).join(", ")}
-                </div>
-
-                {song.soundnet_analysis && (
-                  <div className="analysis-box">
-                    BPM: {song.soundnet_analysis.tempo ?? "N/A"} | Key:{" "}
-                    {song.soundnet_analysis.key ?? "?"}{" "}
-                    {song.soundnet_analysis.scale ?? ""} | Danceability:{" "}
-                    {song.soundnet_analysis.danceability ?? "Unknown"}
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="section">
-          <h2>Your Top Artists</h2>
-          <ul className="stat-list">
-            {artists.map((artist, i) => (
-              <li key={artist.id || i}>
-                <div className="artist-row">
-                  <span className="rank">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  {artist.images?.[0]?.url && (
-                    <img
-                      className="artist-avatar"
-                      src={artist.images[0].url}
-                      alt=""
-                    />
-                  )}
-                  <span className="artist-name">{artist.name}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="section">
-          <h2>Your Top Genres</h2>
-          {topGenres.length === 0 ? (
-            <p className="muted">No genres found yet.</p>
-          ) : (
-            <div className="genre-grid">
-              {topGenres.map((genre) => (
-                <div key={genre.name} className="genre-card">
-                  <div className="genre-name">{genre.name}</div>
-                  <div className="genre-count">
-                    {genre.count} artist{genre.count === 1 ? "" : "s"}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="share-panel">
-          <div className="share-header">
-            <div>
-              <h3>Share your stats</h3>
-              <p className="muted">
-                Create a link to share your top artists and genres.
-              </p>
-            </div>
-            <button
-              className="button-secondary button-inline"
-              onClick={createShareLink}
-              disabled={
-                shareBusy || (artists.length === 0 && topGenres.length === 0)
-              }
-            >
-              {shareBusy ? "Creating..." : "Create Share Link"}
-            </button>
-          </div>
-
-          {shareLink && (
-            <div className="share-row">
-              <input className="share-input" readOnly value={shareLink} />
-              <button className="button-inline" onClick={copyShareLink}>
-                {shareCopied ? "Copied" : "Copy"}
-              </button>
-            </div>
-          )}
-
-          {shareCreateError && (
-            <p className="error-text">{shareCreateError}</p>
-          )}
-        </section>
-      </div>
-      <ReportAnalysis
-        songs={songs}
-        artists={artists}
-        errorMsg={phase === "error" ? errorMsg : null}
-        onLogout={logout}
-      />
-    </div>
+    <ReportAnalysis
+      songs={songs}
+      artists={artists}
+      errorMsg={phase === "error" ? errorMsg : null}
+      onLogout={logout}
+      shareBusy={shareBusy}
+      shareLink={shareLink}
+      shareCreateError={shareCreateError}
+      shareCopied={shareCopied}
+      onCreateShareLink={createShareLink}
+      onCopyShareLink={copyShareLink}
+    />
   );
 }
 

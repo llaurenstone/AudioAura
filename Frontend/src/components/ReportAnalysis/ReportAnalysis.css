@@ -28,7 +28,7 @@
   padding: 24px 0 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 16px;
 }
 
@@ -51,12 +51,18 @@
   background: linear-gradient(135deg, #f0ba72 0%, #ec4899 100%);
   color: #150d18;
   font-weight: 700;
+  cursor: pointer;
 }
 
 .report-button--secondary,
 .report-button--ghost {
   background: rgba(255, 255, 255, 0.06);
   color: #fff;
+}
+
+.report-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .report-button--ghost {
@@ -282,6 +288,33 @@
 
 .report-panel__header {
   margin-bottom: 20px;
+}
+
+.report-share-copy {
+  margin: 0 0 16px;
+  color: #ddd4f8;
+}
+
+.report-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.report-share-input {
+  flex: 1 1 320px;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8f7ff;
+  padding: 12px 18px;
+}
+
+.report-screen__error--inline {
+  margin-top: 16px;
+  margin-bottom: 0;
 }
 
 .report-meter-grid {
