@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import "./LoadingScreen.css";
 
-import aura1 from "./assets/aura1.png";
-import aura2 from "./assets/aura2.png";
-import aura3 from "./assets/aura3.png";
-import aura4 from "./assets/aura4.png";
-import aura5 from "./assets/aura5.png";
-import aura6 from "./assets/aura6.png";
+import aura1 from "../../assets/aura1.png";
+import aura2 from "../../assets/aura2.png";
+import aura3 from "../../assets/aura3.png";
+import aura4 from "../../assets/aura4.png";
+import aura5 from "../../assets/aura5.png";
+import aura6 from "../../assets/aura6.png";
 
-import bg from "./assets/LoadingScreen.png";
+import bg from "../../assets/LoadingScreen.png";
 
 type Props = { progress?: number };
 
