@@ -1,12 +1,16 @@
 import { motion } from "motion/react";
-import { Music, Share2, TrendingUp } from "lucide-react";
 import {
-  Bar,
-  BarChart,
+  Music,
+  Share2,
+  TrendingUp,
+} from "lucide-react";
+import {
+  Legend,
+  Pie,
+  PieChart,
   Cell,
   ResponsiveContainer,
-  XAxis,
-  YAxis,
+  Tooltip,
 } from "recharts";
 import { AuraMeter } from "./AuraMeter";
 import { AuraTypeCard } from "./AuraTypeCard";
@@ -84,6 +88,7 @@ interface ReportAnalysisProps {
   songs: Song[];
   artists: Artist[];
   genreDataOverride?: GenreDatum[];
+  genreStats: GenreDatum[];
   errorMsg?: string | null;
   onLogout: () => void;
   headerActionLabel?: string;
@@ -106,12 +111,12 @@ const average = (values: number[]) =>
     ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
     : 0;
 
-const LOW_THRESHOLD = 35;
-const MODERATE_THRESHOLD = 60;
-const HIGH_THRESHOLD = 65;
-const VERY_HIGH_THRESHOLD = 80;
-const HIGH_ACOUSTICNESS_THRESHOLD = 55;
-const HIGH_TEMPO_THRESHOLD = 120;
+const LOW_THRESHOLD = 40;
+const MODERATE_THRESHOLD = 55;
+const HIGH_THRESHOLD = 60;
+const VERY_HIGH_THRESHOLD = 65;
+const HIGH_ACOUSTICNESS_THRESHOLD = 50;
+const HIGH_TEMPO_THRESHOLD = 115;
 const LOW_POPULARITY_THRESHOLD = 45;
 
 const clampPercent = (value?: number) => {
@@ -121,31 +126,6 @@ const clampPercent = (value?: number) => {
 };
 
 const getArtistNames = (song?: Song) => song?.artist;
-
-const buildGenreData = (artists: Artist[]): GenreDatum[] => {
-  const genreCounts = new Map<string, number>();
-
-  artists.forEach((artist) => {
-    artist.genres?.forEach((genre) => {
-      genreCounts.set(genre, (genreCounts.get(genre) ?? 0) + 1);
-    });
-  });
-
-  if (!genreCounts.size) return [];
-
-  const total = Array.from(genreCounts.values()).reduce(
-    (sum, count) => sum + count,
-    0
-  );
-
-  return Array.from(genreCounts.entries())
-    .map(([name, count]) => ({
-      name,
-      percentage: Math.round((count / total) * 100),
-    }))
-    .sort((left, right) => right.percentage - left.percentage)
-    .slice(0, 5);
-};
 
 const getAverageMetric = (
   audioMetricsFromSongs: Array<Song["soundnet_analysis"]>,
@@ -294,13 +274,15 @@ const deriveAuraType = (audioFeatures: AudioFeatureSummary): AuraType | undefine
 const buildReportData = (
   songs: Song[],
   artists: Artist[],
+  genreStats: GenreDatum[],
   genreDataOverride?: GenreDatum[]
 ): ReportData => {
   const topSong = songs[0];
   const topArtist = artists[0];
   const topGenres = genreDataOverride?.length
     ? genreDataOverride.slice(0, 5)
-    : buildGenreData(artists);
+    : genreStats;
+    
   const audioMetricsFromSongs = songs
     .map((song) => song.soundnet_analysis)
     .filter(Boolean);
@@ -347,6 +329,7 @@ export default function ReportAnalysis({
   songs,
   artists,
   genreDataOverride,
+  genreStats,
   errorMsg,
   onLogout,
   headerActionLabel = "Logout",
@@ -370,7 +353,7 @@ export default function ReportAnalysis({
     topGenres,
     audioFeatures,
     auraType,
-  } = buildReportData(songs, artists, genreDataOverride);
+  } = buildReportData(songs, artists, genreStats, genreDataOverride);
 
   const hasAnyData = songs.length > 0 || artists.length > 0;
   const resolvedHeroLabel = heroLabel ?? "Report analysis";
@@ -381,8 +364,12 @@ export default function ReportAnalysis({
       ? "The data and analysis in this report are derived from your current top tracks, artists, and genres."
       : "Connect Spotify data to generate your report. Until then, this page shows empty states instead of placeholder mock content.");
 
+  const reportThemeClass = auraType
+    ? `report-screen--${auraType.name.toLowerCase().replace(/\s+/g, "-")}`
+    : "";
+
   return (
-    <div className="report-screen">
+    <div className={`report-screen ${reportThemeClass}`.trim()}>
       <div className="report-screen__backdrop" />
 
       <header className="report-screen__header">
@@ -523,28 +510,52 @@ export default function ReportAnalysis({
           </div>
 
           {topGenres.length ? (
-            <div className="report-chart">
+            <div className="report-chart report-chart--pie">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topGenres}>
-                  <XAxis
-                    dataKey="name"
-                    stroke="#ddcffd"
-                    tick={{ fill: "#ddcffd" }}
-                  />
-                  <YAxis
-                    stroke="#ddcffd"
-                    tick={{ fill: "#ddcffd" }}
-                    allowDecimals={false}
-                  />
-                  <Bar dataKey="percentage" radius={[10, 10, 0, 0]}>
+                <PieChart>
+                  <Pie
+                    data={topGenres}
+                    dataKey="percentage"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={72}
+                    outerRadius={112}
+                    paddingAngle={3}
+                    stroke="rgba(14, 10, 33, 0.92)"
+                    strokeWidth={4}
+                  >
                     {topGenres.map((entry, index) => (
                       <Cell
                         key={`${entry.name}-${index}`}
                         fill={COLORS[index % COLORS.length]}
                       />
                     ))}
-                  </Bar>
-                </BarChart>
+                  </Pie>
+                  <Tooltip
+                    formatter={(value, name) => [`${value ?? 0}%`, name]}
+                    contentStyle={{
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      borderRadius: "14px",
+                      background: "rgba(10, 6, 24, 0.94)",
+                      color: "#f7f2ff",
+                      boxShadow: "0 18px 40px rgba(0, 0, 0, 0.32)",
+                    }}
+                    labelStyle={{ color: "#f7f2ff" }}
+                    itemStyle={{ color: "#f7f2ff" }}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    align="center"
+                    iconType="circle"
+                    itemSorter={null}
+                    formatter={(value, _entry, index) => {
+                      const genre = topGenres[index];
+                      return `${value} (${genre?.percentage ?? 0}%)`;
+                    }}
+                    wrapperStyle={{ color: "#ddcffd", paddingTop: "20px" }}
+                  />
+                </PieChart>
               </ResponsiveContainer>
             </div>
           ) : (
