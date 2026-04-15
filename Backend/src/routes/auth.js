@@ -7,6 +7,8 @@ const SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize";
 const SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token";
 const SPOTIFY_ME_URL = "https://api.spotify.com/v1/me";
 const SCOPES = "user-read-email user-read-private user-top-read";
+const AUTH_STATE_TTL_MS = 1000 * 60 * 10;
+const pendingAuth = new Map();
 
 // base64url encoding required by spotify PKCE
 function base64url(buffer) {
@@ -33,6 +35,38 @@ function requireEnv(name) {
   return v;
 }
 
+function storePendingAuth(state, verifier) {
+  pendingAuth.set(state, {
+    verifier,
+    expiresAt: Date.now() + AUTH_STATE_TTL_MS,
+  });
+}
+
+function consumePendingAuth(state) {
+  const entry = pendingAuth.get(state);
+  if (!entry) return null;
+
+  pendingAuth.delete(state);
+
+  if (entry.expiresAt <= Date.now()) {
+    return null;
+  }
+
+  return entry.verifier;
+}
+
+function purgeExpiredPendingAuth() {
+  const now = Date.now();
+
+  for (const [state, entry] of pendingAuth.entries()) {
+    if (entry.expiresAt <= now) {
+      pendingAuth.delete(state);
+    }
+  }
+}
+
+setInterval(purgeExpiredPendingAuth, 60 * 1000).unref?.();
+
 //LOGIN page
 router.get("/spotify/login", (req, res) => {
   const client_id = requireEnv("SPOTIFY_CLIENT_ID");
@@ -41,9 +75,7 @@ router.get("/spotify/login", (req, res) => {
   const state = base64url(crypto.randomBytes(16));
   const verifier = generateVerifier();
   const challenge = generateChallenge(verifier);
-
-  req.session.state = state;
-  req.session.verifier = verifier;
+  storePendingAuth(state, verifier);
 
 //Spotify /authorize
   const params = new URLSearchParams({
@@ -52,6 +84,7 @@ router.get("/spotify/login", (req, res) => {
     redirect_uri,
     scope: SCOPES,
     state,
+    show_dialog: "true",
     code_challenge_method: "S256",
     code_challenge: challenge,
   });
@@ -67,13 +100,17 @@ router.get("/spotify/callback", async (req, res) => {
 
   const { code, state, error, error_description } = req.query;
 
+  if (!code && !state && !error) {
+    return res.redirect("/auth/spotify/login");
+  }
+
   if (error) {
     return res
       .status(400)
       .send(`Spotify OAuth error: ${error} ${error_description ?? ""}`);
   }
 
-  if (!state || state !== req.session.state) {
+  if (typeof state !== "string") {
     return res.status(400).send("Invalid state. Possible CSRF or session loss.");
   }
 
@@ -81,10 +118,12 @@ router.get("/spotify/callback", async (req, res) => {
     return res.status(400).send("Missing code in callback.");
   }
 
-  if (!req.session.verifier) {
+  const verifier = consumePendingAuth(state);
+
+  if (!verifier) {
     return res
       .status(400)
-      .send("Missing PKCE verifier in session. Session cookie not persisting.");
+      .send("Invalid state. Possible CSRF or expired login session.");
   }
 
 //Exchange code to access token
@@ -93,7 +132,7 @@ router.get("/spotify/callback", async (req, res) => {
     grant_type: "authorization_code",
     code: String(code),
     redirect_uri,
-    code_verifier: req.session.verifier,
+    code_verifier: verifier,
   });
 
   const tokenResp = await fetch(SPOTIFY_TOKEN_URL, {
@@ -110,11 +149,14 @@ router.get("/spotify/callback", async (req, res) => {
 
   req.session.accessToken = tokens.access_token;
 
-  // one time code refresher
-  delete req.session.state;
-  delete req.session.verifier;
+  req.session.save((err) => {
+    if (err) {
+      console.error("Failed to persist callback session:", err);
+      return res.status(500).send("Failed to persist Spotify session after callback.");
+    }
 
-  res.redirect(`${frontend}/`);
+    res.redirect(`${frontend}/`);
+  });
 });
 
 // Frontend checks if logged in
