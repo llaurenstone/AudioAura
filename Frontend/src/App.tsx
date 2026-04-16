@@ -549,21 +549,22 @@ function App() {
 
   if (phase === "fetching") return <LoadingScreen progress={progress} />;
 
-  return (
-    <ReportAnalysis
-      songs={songs}
-      artists={artists}
-      genreDataOverride={genreChartData}
-      errorMsg={phase === "error" ? errorMsg : null}
-      onLogout={logout}
-      shareBusy={shareBusy}
-      shareLink={shareLink}
-      shareCreateError={shareCreateError}
-      shareCopied={shareCopied}
-      onCreateShareLink={createShareLink}
-      onCopyShareLink={copyShareLink}
-    />
-  );
+ return (
+   <ReportAnalysis
+     songs={songs}
+     artists={artists}
+     genreStats={genreChartData}
+     genreDataOverride={genreChartData}
+     errorMsg={phase === "error" ? errorMsg : null}
+     onLogout={logout}
+     shareBusy={shareBusy}
+     shareLink={shareLink}
+     shareCreateError={shareCreateError}
+     shareCopied={shareCopied}
+     onCreateShareLink={createShareLink}
+     onCopyShareLink={copyShareLink}
+   />
+ );
 }
 
 export default App;
