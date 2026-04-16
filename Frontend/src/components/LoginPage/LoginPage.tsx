@@ -6,9 +6,10 @@ export type LoginStatus = "loading" | "logged-in" | "logged-out";
 type LoginPageProps = {
   status: LoginStatus;
   onLogin: () => void;
+  loginUrl: string;
 };
 
-function LoginPage({ status, onLogin }: LoginPageProps) {
+function LoginPage({ status, onLogin, loginUrl }: LoginPageProps) {
   return (
     <div className="loginPage relative overflow-hidden">
       <section className="loginPanel">
@@ -17,9 +18,18 @@ function LoginPage({ status, onLogin }: LoginPageProps) {
         {status === "loading" ? (
           <p className="statusText">Checking login...</p>
         ) : (
-          <button className="loginButton" onClick={onLogin}>
-            LOG IN
-          </button>
+          <>
+            <a
+              className="loginButton"
+              href={loginUrl}
+              onClick={(event) => {
+                event.preventDefault();
+                onLogin();
+              }}
+            >
+              LOG IN
+            </a>
+          </>
         )}
       </section>
       

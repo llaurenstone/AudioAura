@@ -76,6 +76,34 @@ const buildTopGenres = (items: any[], limit = 8): ShareGenre[] => {
     .slice(0, limit);
 };
 
+const buildGenreChartData = (
+  items: any[],
+  limit = 5
+): Array<{ name: string; percentage: number }> => {
+  const counts = new Map<string, number>();
+
+  items.forEach((artist) => {
+    if (!Array.isArray(artist?.genres)) return;
+    artist.genres.forEach((genre: string) => {
+      if (typeof genre !== "string") return;
+      const key = genre.trim();
+      if (!key) return;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    });
+  });
+
+  const total = Array.from(counts.values()).reduce((sum, count) => sum + count, 0);
+  if (!total) return [];
+
+  return Array.from(counts.entries())
+    .map(([name, count]) => ({
+      name,
+      percentage: Math.max(1, Math.round((count / total) * 100)),
+    }))
+    .sort((left, right) => right.percentage - left.percentage)
+    .slice(0, limit);
+};
+
 const isDefined = <T,>(value: T | null | undefined): value is T =>
   value !== null && value !== undefined;
 
@@ -121,7 +149,6 @@ const normalizeSharedSongs = (items: ShareSong[] = []) =>
       };
     })
     .filter(isDefined);
-type GenreStatsResponse = Record<string, number>;
 
 function App() {
   const [status, setStatus] = useState<"loading" | "logged-in" | "logged-out">(
@@ -130,7 +157,6 @@ function App() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [songs, setSongs] = useState<any[]>([]);
   const [artists, setArtists] = useState<any[]>([]);
-  const [genreStats, setGenreStats] = useState<Array<{ name: string; percentage: number }>>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
 
@@ -158,6 +184,7 @@ function App() {
 
   const isShareMode = Boolean(shareId);
   const topGenres = useMemo(() => buildTopGenres(artists), [artists]);
+  const genreChartData = useMemo(() => buildGenreChartData(artists), [artists]);
   const sharedArtists = useMemo(
     () => normalizeSharedArtists(shareData?.artists ?? []),
     [shareData]
@@ -263,7 +290,6 @@ function App() {
       setPhase("idle");
       setSongs([]);
       setArtists([]);
-      setGenreStats([]);
       setErrorMsg(null);
       setProfileName(null);
       setProgressSafe(0);
@@ -304,7 +330,7 @@ function App() {
         setPhase("fetching");
         fakeId = startProgress();
 
-        const [tracksRes, artistsRes, profileRes, genreStatsRes] = await Promise.all([
+        const [tracksRes, artistsRes, profileRes] = await Promise.all([
           fetch(`${API_BASE}/auth/spotify/top-tracks`, {
             credentials: "include",
           }),
@@ -314,22 +340,16 @@ function App() {
           fetch(`${API_BASE}/auth/spotify/me`, {
             credentials: "include",
           }),
-          fetch(`${API_BASE}/auth/spotify/genre-stats`, {
-            credentials: "include",
-          }),
         ]);
 
         if (!tracksRes.ok)
           throw new Error(`Top tracks failed: ${tracksRes.status}`);
         if (!artistsRes.ok)
           throw new Error(`Top artists failed: ${artistsRes.status}`);
-        if (!genreStatsRes.ok)
-          throw new Error(`Genre stats failed: ${genreStatsRes.status}`);
 
-        const [tracksData, artistsData, genreStatsData] = await Promise.all([
+        const [tracksData, artistsData] = await Promise.all([
           tracksRes.json(),
           artistsRes.json(),
-          genreStatsRes.json(),
         ]);
         const profileData = profileRes.ok
           ? await profileRes.json().catch(() => null)
@@ -348,17 +368,6 @@ function App() {
             typeof profileData?.id === "string" ? profileData.id.trim() : "";
           setProfileName(rawName || fallbackId || null);
         }
-        
-        const normalizedGenreStats = Object.entries(
-          (genreStatsData.items || genreStatsData || {}) as GenreStatsResponse
-        )
-          .map(([name, percentage]) => ({
-            name,
-            percentage: Math.round(Number(percentage) || 0),
-          }))
-          .sort((left, right) => right.percentage - left.percentage);
-
-        setGenreStats(normalizedGenreStats);
 
         if (fakeId) window.clearInterval(fakeId);
         setProgressSafe(100);
@@ -517,9 +526,9 @@ function App() {
 
    return (
      <ReportAnalysis
-       songs={sharedSongs}
-       artists={sharedArtists}
-       genreStats={sharedGenreData ?? []}
+        songs={sharedSongs}
+         artists={sharedArtists}
+         genreStats={sharedGenreData ?? []}
        genreDataOverride={sharedGenreData}
        errorMsg={sharePhase === "error" ? shareViewError : null}
        onLogout={openAudioAuraHome}
@@ -544,7 +553,7 @@ function App() {
     <ReportAnalysis
       songs={songs}
       artists={artists}
-      genreStats={genreStats}
+      genreDataOverride={genreChartData}
       errorMsg={phase === "error" ? errorMsg : null}
       onLogout={logout}
       shareBusy={shareBusy}
