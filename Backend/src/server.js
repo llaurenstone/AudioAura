@@ -11,11 +11,14 @@ import shareRoutes from "./routes/share.js";
 dotenv.config();
 
 const app = express();
-const PORT = 5001;
+const PORT = process.env.PORT || 5001
+const isProduction = process.env.NODE_ENV === "production";
+
+app.set("trust proxy", 1);
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL, //
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   })
 );
@@ -29,8 +32,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
     },
   })
 );
@@ -41,10 +44,6 @@ app.use("/get", spotifyRoutes);
 app.use("/auth/spotify", spotifyRoutes);
 app.use("/share", shareRoutes);
 
-// mkcert-generated local certificates for https
-const key = fs.readFileSync("./certs/127.0.0.1+1-key.pem");
-const cert = fs.readFileSync("./certs/127.0.0.1+1.pem");
-
-https.createServer({ key, cert }, app).listen(PORT, () => {
-  console.log(`Backend HTTPS running on https://127.0.0.1:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Backend running on port ${PORT}`);
 });
