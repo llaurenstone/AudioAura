@@ -514,20 +514,21 @@ function App() {
       return <LoadingScreen progress={24} />;
     }
 
-    return (
-      <ReportAnalysis
-        songs={sharedSongs}
-        artists={sharedArtists}
-        genreDataOverride={sharedGenreData}
-        errorMsg={sharePhase === "error" ? shareViewError : null}
-        onLogout={openAudioAuraHome}
-        headerActionLabel="Open AudioAura"
-        heroLabel="Shared report"
-        heroTitle={sharedHeroTitle}
-        heroCopy={sharedHeroCopy}
-        showSharePanel={false}
-      />
-    );
+   return (
+     <ReportAnalysis
+       songs={sharedSongs}
+       artists={sharedArtists}
+       genreStats={sharedGenreData ?? []}
+       genreDataOverride={sharedGenreData}
+       errorMsg={sharePhase === "error" ? shareViewError : null}
+       onLogout={openAudioAuraHome}
+       headerActionLabel="Open AudioAura"
+       heroLabel="Shared report"
+       heroTitle={sharedHeroTitle}
+       heroCopy={sharedHeroCopy}
+       showSharePanel={false}
+     />
+   );
   }
 
   if (status === "loading") return <LoadingScreen progress={12} />;
