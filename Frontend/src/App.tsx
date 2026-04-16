@@ -54,7 +54,7 @@ type SharePayload = {
   genres?: ShareGenre[];
 };
 
-const API_BASE = "https://127.0.0.1:5001";
+const API_BASE = import.meta.env.VITE_API_URL || "https://127.0.0.1:5001";
 
 const buildTopGenres = (items: any[], limit = 8): ShareGenre[] => {
   const counts = new Map<string, number>();
@@ -248,7 +248,7 @@ function App() {
   };
 
   const login = () => {
-    window.location.href = `${API_BASE}/auth/spotify/login`;
+    window.location.assign(LOGIN_URL);
   };
 
   const logout = async () => {
@@ -533,7 +533,7 @@ function App() {
   if (status === "loading") return <LoadingScreen progress={12} />;
 
   if (status !== "logged-in") {
-    return <LoginPage status={status} onLogin={login} />;
+    return <LoginPage status={status} onLogin={login} loginUrl={API_BASE} />;
   }
 
   if (phase === "fetching") return <LoadingScreen progress={progress} />;
@@ -542,7 +542,7 @@ function App() {
     <ReportAnalysis
       songs={songs}
       artists={artists}
-      genreStats={genreStats}
+      genreStats={sharedGenreData ?? []}
       errorMsg={phase === "error" ? errorMsg : null}
       onLogout={logout}
       shareBusy={shareBusy}
