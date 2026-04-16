@@ -32,9 +32,8 @@ function LoginPage({ status, onLogin, loginUrl }: LoginPageProps) {
           </>
         )}
       </section>
-      
-      <AuraRingAnimation className="loginAuraWrap" />
 
+      <AuraRingAnimation className="loginAuraWrap" />
     </div>
   );
 }
