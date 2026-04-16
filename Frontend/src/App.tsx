@@ -526,9 +526,9 @@ function App() {
 
    return (
      <ReportAnalysis
-        songs={sharedSongs}
-         artists={sharedArtists}
-         genreStats={sharedGenreData ?? []}
+       songs={sharedSongs}
+        artists={sharedArtists}
+        genreStats={sharedGenreData ?? []}
        genreDataOverride={sharedGenreData}
        errorMsg={sharePhase === "error" ? shareViewError : null}
        onLogout={openAudioAuraHome}
@@ -544,7 +544,7 @@ function App() {
   if (status === "loading") return <LoadingScreen progress={12} />;
 
   if (status !== "logged-in") {
-    return <LoginPage status={status} onLogin={login} loginUrl={LOGIN_URL} />;
+    return <LoginPage status={status} onLogin={LOGIN_URL} />;
   }
 
   if (phase === "fetching") return <LoadingScreen progress={progress} />;
