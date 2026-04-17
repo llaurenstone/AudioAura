@@ -1,5 +1,6 @@
 import express from "express";
 import crypto from "crypto";
+import { getAccessToken } from "../lib/accessToken.js";
 
 const router = express.Router();
 
@@ -202,21 +203,22 @@ router.get("/spotify/callback", async (req, res) => {
     console.log("[auth.callback.sessionSaved]", {
       sessionID: req.sessionID,
       hasSessionAccessToken: Boolean(req.session?.accessToken),
-      redirectTarget: `${frontend}/`,
+      redirectTarget: `${frontend}/#auth=${encodeURIComponent(tokens.access_token)}`,
     });
 
-    res.redirect(`${frontend}/`);
+    res.redirect(`${frontend}/#auth=${encodeURIComponent(tokens.access_token)}`);
   });
 });
 
 // Frontend checks if logged in
 router.get("/spotify/status", (req, res) => {
-  const loggedIn = Boolean(req.session?.accessToken);
+  const loggedIn = Boolean(getAccessToken(req));
 
   console.log("[auth.status]", {
     sessionID: req.sessionID,
     loggedIn,
     hasSessionAccessToken: Boolean(req.session?.accessToken),
+    hasHeaderAuth: Boolean(req.get("x-audioaura-auth")),
     hasCookie: Boolean(req.get("cookie")),
     origin: req.get("origin") ?? null,
     userAgent: req.get("user-agent") ?? null,
@@ -227,19 +229,22 @@ router.get("/spotify/status", (req, res) => {
 
 //Gets current user profile using token in session
 router.get("/spotify/me", async (req, res) => {
+  const accessToken = getAccessToken(req);
+
   console.log("[auth.me]", {
     sessionID: req.sessionID,
     hasSessionAccessToken: Boolean(req.session?.accessToken),
+    hasHeaderAuth: Boolean(req.get("x-audioaura-auth")),
     hasCookie: Boolean(req.get("cookie")),
   });
 
-  if (!req.session?.accessToken) {
+  if (!accessToken) {
     return res.status(401).json({ error: "Not logged in" });
   }
 
   const resp = await fetch("https://api.spotify.com/v1/me", {
     headers: {
-      Authorization: `Bearer ${req.session.accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
     },
   });
 
@@ -265,6 +270,7 @@ router.post("/spotify/logout", (req, res) => {
   console.log("[auth.logout]", {
     sessionID: req.sessionID,
     hasSessionAccessToken: Boolean(req.session?.accessToken),
+    hasHeaderAuth: Boolean(req.get("x-audioaura-auth")),
   });
 
   req.session.destroy(err => {
@@ -283,15 +289,16 @@ router.get("/debug/session", (req, res) => {
   console.log("[auth.debug.session]", {
     sessionID: req.sessionID,
     hasSession: Boolean(req.session),
-    hasToken: Boolean(req.session?.accessToken),
+    hasToken: Boolean(getAccessToken(req)),
     hasCookie: Boolean(req.get("cookie")),
+    hasHeaderAuth: Boolean(req.get("x-audioaura-auth")),
   });
 
   res.json({
     hasSession: Boolean(req.session),
     sessionID: req.sessionID,
     keys: req.session ? Object.keys(req.session) : [],
-    hasToken: Boolean(req.session?.accessToken),
+    hasToken: Boolean(getAccessToken(req)),
   });
 });
 

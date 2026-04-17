@@ -1,5 +1,6 @@
 import express from "express";
 import crypto from "crypto";
+import { getAccessToken } from "../lib/accessToken.js";
 
 const router = express.Router();
 
@@ -185,7 +186,7 @@ const purgeExpired = () => {
 setInterval(purgeExpired, 60 * 60 * 1000).unref?.();
 
 router.post("/", (req, res) => {
-  if (!req.session?.accessToken) {
+  if (!getAccessToken(req)) {
     return res.status(401).json({ error: "Not logged in" });
   }
 

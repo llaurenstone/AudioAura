@@ -1,5 +1,6 @@
 import express from "express";
 import "dotenv/config";
+import { getAccessToken } from "../lib/accessToken.js";
 
 const router = express.Router();
 
@@ -52,7 +53,7 @@ function getTimeRange(query) {
 }
 
 router.get("/top-tracks", async (req, res) => {
-  const token = req.session?.accessToken;
+  const token = getAccessToken(req);
   if (!token) return res.status(401).json({ error: "Not logged in" });
   
   const timeRange = getTimeRange(req.query);
@@ -118,7 +119,7 @@ router.get("/top-tracks", async (req, res) => {
 });
 
 router.get("/top-artists", async (req, res) => {
-  const token = req.session?.accessToken;
+  const token = getAccessToken(req);
   if (!token) return res.status(401).json({ error: "Not logged in" });
 
   const timeRange = getTimeRange(req.query);
@@ -159,7 +160,7 @@ router.get("/top-artists", async (req, res) => {
 });
 
 router.get("/genre-stats", async (req, res) => {
-  const token = req.session?.accessToken;
+  const token = getAccessToken(req);
   if (!token) return res.status(401).json({ error: "Not logged in" });
 
   const timeRange = getTimeRange(req.query);
