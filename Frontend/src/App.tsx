@@ -56,6 +56,7 @@ type SharePayload = {
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://127.0.0.1:5001";
 const LOGIN_URL = `${API_BASE}/auth/spotify/login`;
+const CLIENT_AUTH_STORAGE_KEY = "audioaura_client_auth";
 
 const buildTopGenres = (items: any[], limit = 8): ShareGenre[] => {
   const counts = new Map<string, number>();
@@ -172,6 +173,7 @@ function App() {
   // loading progress shown on loadingscreen
   const [progress, setProgress] = useState(0);
   const progressRef = useRef(0);
+  const clientAuthTokenRef = useRef<string | null>(null);
 
   const shareId = useMemo(() => {
     if (typeof window === "undefined") return null;
@@ -279,13 +281,22 @@ function App() {
     window.location.assign(LOGIN_URL);
   };
 
+  const getAuthHeaders = (): Record<string, string> => {
+    const token = clientAuthTokenRef.current;
+    if (!token) return {};
+    return { "x-audioaura-auth": token };
+  };
+
   const logout = async () => {
     try {
       await fetch(`${API_BASE}/auth/spotify/logout`, {
         method: "POST",
         credentials: "include",
+        headers: getAuthHeaders(),
       });
     } finally {
+      clientAuthTokenRef.current = null;
+      window.localStorage.removeItem(CLIENT_AUTH_STORAGE_KEY);
       setStatus("logged-out");
       setPhase("idle");
       setSongs([]);
@@ -301,13 +312,44 @@ function App() {
   };
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const hash = window.location.hash.startsWith("#")
+      ? window.location.hash.slice(1)
+      : window.location.hash;
+    const hashParams = new URLSearchParams(hash);
+    const authToken = hashParams.get("auth");
+    const storedToken = window.localStorage.getItem(CLIENT_AUTH_STORAGE_KEY);
+    const activeToken = authToken || storedToken;
+
+    if (activeToken) {
+      clientAuthTokenRef.current = activeToken;
+      window.localStorage.setItem(CLIENT_AUTH_STORAGE_KEY, activeToken);
+    }
+
+    if (authToken) {
+      hashParams.delete("auth");
+      const nextHash = hashParams.toString();
+      const nextUrl = `${window.location.pathname}${window.location.search}${
+        nextHash ? `#${nextHash}` : ""
+      }`;
+      window.history.replaceState({}, document.title, nextUrl);
+    }
+  }, []);
+
+  useEffect(() => {
     if (isShareMode) return;
     const checkStatus = async () => {
       try {
         const r = await fetch(`${API_BASE}/auth/spotify/status`, {
           credentials: "include",
+          headers: getAuthHeaders(),
         });
         const j = await r.json();
+        if (!j.loggedIn && clientAuthTokenRef.current) {
+          clientAuthTokenRef.current = null;
+          window.localStorage.removeItem(CLIENT_AUTH_STORAGE_KEY);
+        }
         setStatus(j.loggedIn ? "logged-in" : "logged-out");
       } catch {
         setStatus("logged-out");
@@ -333,12 +375,15 @@ function App() {
         const [tracksRes, artistsRes, profileRes] = await Promise.all([
           fetch(`${API_BASE}/auth/spotify/top-tracks`, {
             credentials: "include",
+            headers: getAuthHeaders(),
           }),
           fetch(`${API_BASE}/auth/spotify/top-artists`, {
             credentials: "include",
+            headers: getAuthHeaders(),
           }),
           fetch(`${API_BASE}/auth/spotify/me`, {
             credentials: "include",
+            headers: getAuthHeaders(),
           }),
         ]);
 
@@ -466,7 +511,10 @@ function App() {
       const resp = await fetch(`${API_BASE}/share`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
         body: JSON.stringify(payload),
       });
 
