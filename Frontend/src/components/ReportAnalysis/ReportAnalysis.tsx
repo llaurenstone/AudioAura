@@ -44,6 +44,8 @@ type GenreDatum = {
   percentage: number;
 };
 
+type SpotifyTimeRange = "short_term" | "medium_term" | "long_term";
+
 type AudioFeatureSummary = {
   energy?: number;
   danceability?: number;
@@ -89,6 +91,8 @@ interface ReportAnalysisProps {
   artists: Artist[];
   genreDataOverride?: GenreDatum[];
   genreStats: GenreDatum[];
+  timeRange?: SpotifyTimeRange;
+  onTimeRangeChange?: (timeRange: SpotifyTimeRange) => void;
   errorMsg?: string | null;
   onLogout: () => void;
   headerActionLabel?: string;
@@ -105,6 +109,14 @@ interface ReportAnalysisProps {
 }
 
 const COLORS = ["#a855f7", "#ec4899", "#8b5cf6", "#f472b6", "#9333ea"];
+const TIME_RANGE_OPTIONS: Array<{
+  value: SpotifyTimeRange;
+  label: string;
+}> = [
+  { value: "short_term", label: "4 weeks" },
+  { value: "medium_term", label: "6 months" },
+  { value: "long_term", label: "12 months" },
+];
 
 const average = (values: number[]) =>
   values.length
@@ -123,6 +135,16 @@ const clampPercent = (value?: number) => {
   if (value === undefined || Number.isNaN(value)) return undefined;
   const normalized = value >= 0 && value <= 1 ? value * 100 : value;
   return Math.max(0, Math.min(100, Math.round(normalized)));
+};
+
+const formatGenreLabel = (genre?: string) => {
+  if (!genre) return genre;
+
+  return genre
+    .split(/[\s-]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 };
 
 const getArtistNames = (song?: Song) => song?.artist;
@@ -330,6 +352,8 @@ export default function ReportAnalysis({
   artists,
   genreDataOverride,
   genreStats,
+  timeRange = "short_term",
+  onTimeRangeChange,
   errorMsg,
   onLogout,
   headerActionLabel = "Logout",
@@ -390,6 +414,24 @@ export default function ReportAnalysis({
           <p className="report-section-label">{resolvedHeroLabel}</p>
           <h1>{resolvedHeroTitle}</h1>
           <p className="report-screen__hero-copy">{resolvedHeroCopy}</p>
+          {onTimeRangeChange && (
+            <div className="report-time-range report-time-range--hero">
+              {TIME_RANGE_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`report-time-range__button ${
+                    timeRange === option.value
+                      ? "report-time-range__button--active"
+                      : ""
+                  }`.trim()}
+                  onClick={() => onTimeRangeChange(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
         </motion.section>
 
         {errorMsg && <p className="report-screen__error">{errorMsg}</p>}
@@ -433,7 +475,7 @@ export default function ReportAnalysis({
               <Music size={18} />
               <span>Top genre</span>
             </div>
-            <h3>{topGenre ?? "No genre data available yet"}</h3>
+            <h3>{formatGenreLabel(topGenre) ?? "No genre data available yet"}</h3>
           </article>
         </motion.section>
 
@@ -533,7 +575,10 @@ export default function ReportAnalysis({
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value, name) => [`${value ?? 0}%`, name]}
+                    formatter={(value, name) => [
+                      `${value ?? 0}%`,
+                      formatGenreLabel(String(name)),
+                    ]}
                     contentStyle={{
                       border: "1px solid rgba(255,255,255,0.12)",
                       borderRadius: "14px",
@@ -551,7 +596,7 @@ export default function ReportAnalysis({
                     itemSorter={null}
                     formatter={(value, _entry, index) => {
                       const genre = topGenres[index];
-                      return `${value} (${genre?.percentage ?? 0}%)`;
+                      return `${formatGenreLabel(String(value))} (${genre?.percentage ?? 0}%)`;
                     }}
                     wrapperStyle={{ color: "#ddcffd", paddingTop: "20px" }}
                   />

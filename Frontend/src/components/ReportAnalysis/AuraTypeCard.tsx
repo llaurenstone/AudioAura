@@ -58,7 +58,7 @@ export function AuraTypeCard({
                 alt={`${name} aura icon`}
               />
             ) : 
-             <Sparkles className="report-aura-icon" />
+             <Sparkles className="report-aura-icon report-aura-icon--fallback" />
              }
           </div>
           <div>
