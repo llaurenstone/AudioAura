@@ -54,7 +54,7 @@ type SharePayload = {
   genres?: ShareGenre[];
 };
 
-const API_BASE = import.meta.env.VITE_API_URL || "https://127.0.0.1:5001";
+const API_BASE = "";
 const LOGIN_URL = `${API_BASE}/auth/spotify/login`;
 
 const buildTopGenres = (items: any[], limit = 8): ShareGenre[] => {
