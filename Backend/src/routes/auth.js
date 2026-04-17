@@ -77,6 +77,12 @@ router.get("/spotify/login", (req, res) => {
   const challenge = generateChallenge(verifier);
   storePendingAuth(state, verifier);
 
+  console.log("[auth.login]", {
+    sessionID: req.sessionID,
+    redirectUri: redirect_uri,
+    statePreview: state.slice(0, 8),
+  });
+
 //Spotify /authorize
   const params = new URLSearchParams({
     response_type: "code",
@@ -100,27 +106,54 @@ router.get("/spotify/callback", async (req, res) => {
 
   const { code, state, error, error_description } = req.query;
 
+  console.log("[auth.callback.hit]", {
+    sessionID: req.sessionID,
+    hasCode: Boolean(code),
+    hasState: typeof state === "string",
+    error: error ?? null,
+  });
+
   if (!code && !state && !error) {
+    console.log("[auth.callback.empty]", {
+      sessionID: req.sessionID,
+    });
     return res.redirect("/auth/spotify/login");
   }
 
   if (error) {
+    console.log("[auth.callback.spotifyError]", {
+      sessionID: req.sessionID,
+      error,
+      errorDescription: error_description ?? null,
+    });
     return res
       .status(400)
       .send(`Spotify OAuth error: ${error} ${error_description ?? ""}`);
   }
 
   if (typeof state !== "string") {
+    console.log("[auth.callback.invalidStateType]", {
+      sessionID: req.sessionID,
+      receivedStateType: typeof state,
+    });
     return res.status(400).send("Invalid state. Possible CSRF or session loss.");
   }
 
   if (!code) {
+    console.log("[auth.callback.missingCode]", {
+      sessionID: req.sessionID,
+      statePreview: state.slice(0, 8),
+    });
     return res.status(400).send("Missing code in callback.");
   }
 
   const verifier = consumePendingAuth(state);
 
   if (!verifier) {
+    console.log("[auth.callback.verifierMissing]", {
+      sessionID: req.sessionID,
+      statePreview: state.slice(0, 8),
+    });
     return res
       .status(400)
       .send("Invalid state. Possible CSRF or expired login session.");
@@ -144,8 +177,19 @@ router.get("/spotify/callback", async (req, res) => {
   const tokens = await tokenResp.json();
 
   if (!tokenResp.ok) {
+    console.log("[auth.callback.tokenExchangeFailed]", {
+      sessionID: req.sessionID,
+      status: tokenResp.status,
+      body: tokens,
+    });
     return res.status(tokenResp.status).json(tokens);
   }
+
+  console.log("[auth.callback.tokenExchangeSucceeded]", {
+    sessionID: req.sessionID,
+    status: tokenResp.status,
+    hasAccessToken: Boolean(tokens.access_token),
+  });
 
   req.session.accessToken = tokens.access_token;
 
@@ -155,17 +199,40 @@ router.get("/spotify/callback", async (req, res) => {
       return res.status(500).send("Failed to persist Spotify session after callback.");
     }
 
+    console.log("[auth.callback.sessionSaved]", {
+      sessionID: req.sessionID,
+      hasSessionAccessToken: Boolean(req.session?.accessToken),
+      redirectTarget: `${frontend}/`,
+    });
+
     res.redirect(`${frontend}/`);
   });
 });
 
 // Frontend checks if logged in
 router.get("/spotify/status", (req, res) => {
-  res.json({ loggedIn: Boolean(req.session?.accessToken) });
+  const loggedIn = Boolean(req.session?.accessToken);
+
+  console.log("[auth.status]", {
+    sessionID: req.sessionID,
+    loggedIn,
+    hasSessionAccessToken: Boolean(req.session?.accessToken),
+    hasCookie: Boolean(req.get("cookie")),
+    origin: req.get("origin") ?? null,
+    userAgent: req.get("user-agent") ?? null,
+  });
+
+  res.json({ loggedIn });
 });
 
 //Gets current user profile using token in session
 router.get("/spotify/me", async (req, res) => {
+  console.log("[auth.me]", {
+    sessionID: req.sessionID,
+    hasSessionAccessToken: Boolean(req.session?.accessToken),
+    hasCookie: Boolean(req.get("cookie")),
+  });
+
   if (!req.session?.accessToken) {
     return res.status(401).json({ error: "Not logged in" });
   }
@@ -195,6 +262,11 @@ router.get("/spotify/me", async (req, res) => {
 });
 
 router.post("/spotify/logout", (req, res) => {
+  console.log("[auth.logout]", {
+    sessionID: req.sessionID,
+    hasSessionAccessToken: Boolean(req.session?.accessToken),
+  });
+
   req.session.destroy(err => {
     if (err) {
       console.error("Logout error:", err);
@@ -208,6 +280,13 @@ router.post("/spotify/logout", (req, res) => {
 
 
 router.get("/debug/session", (req, res) => {
+  console.log("[auth.debug.session]", {
+    sessionID: req.sessionID,
+    hasSession: Boolean(req.session),
+    hasToken: Boolean(req.session?.accessToken),
+    hasCookie: Boolean(req.get("cookie")),
+  });
+
   res.json({
     hasSession: Boolean(req.session),
     sessionID: req.sessionID,
