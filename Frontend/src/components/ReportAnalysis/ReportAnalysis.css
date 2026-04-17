@@ -192,6 +192,11 @@
   font-size: 1.05rem;
 }
 
+.report-time-range--hero {
+  margin-top: 24px;
+  justify-content: flex-start;
+}
+
 .report-screen__error {
   margin: 0 0 24px;
   padding: 14px 16px;
@@ -305,6 +310,11 @@
   height: 100%;
   object-fit: contain;
   display: block;
+}
+
+.report-aura-icon--fallback {
+  width: 68%;
+  height: 68%;
 }
 
 .report-aura-title {
@@ -422,7 +432,46 @@
 }
 
 .report-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 20px;
+}
+
+.report-time-range {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.report-time-range__button {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: #ddd4f8;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.report-time-range__button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.report-time-range__button--active {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: linear-gradient(
+    135deg,
+    rgba(168, 85, 247, 0.3),
+    rgba(236, 72, 153, 0.26)
+  );
+  color: #fff7ff;
 }
 
 .report-share-copy {
@@ -628,6 +677,15 @@
 
   .report-screen__split {
     grid-template-columns: 1fr;
+  }
+
+  .report-panel__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .report-time-range {
+    justify-content: flex-start;
   }
 }
 

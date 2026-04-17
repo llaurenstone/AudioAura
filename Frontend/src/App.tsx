@@ -54,6 +54,8 @@ type SharePayload = {
   genres?: ShareGenre[];
 };
 
+type SpotifyTimeRange = "short_term" | "medium_term" | "long_term";
+
 const API_BASE = import.meta.env.VITE_API_URL || "https://127.0.0.1:5001";
 const LOGIN_URL = `${API_BASE}/auth/spotify/login`;
 const CLIENT_AUTH_STORAGE_KEY = "audioaura_client_auth";
@@ -158,6 +160,7 @@ function App() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [songs, setSongs] = useState<any[]>([]);
   const [artists, setArtists] = useState<any[]>([]);
+  const [timeRange, setTimeRange] = useState<SpotifyTimeRange>("short_term");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
 
@@ -373,14 +376,20 @@ function App() {
         fakeId = startProgress();
 
         const [tracksRes, artistsRes, profileRes] = await Promise.all([
-          fetch(`${API_BASE}/auth/spotify/top-tracks`, {
-            credentials: "include",
-            headers: getAuthHeaders(),
-          }),
-          fetch(`${API_BASE}/auth/spotify/top-artists`, {
-            credentials: "include",
-            headers: getAuthHeaders(),
-          }),
+          fetch(
+            `${API_BASE}/auth/spotify/top-tracks?time_range=${timeRange}`,
+            {
+              credentials: "include",
+              headers: getAuthHeaders(),
+            }
+          ),
+          fetch(
+            `${API_BASE}/auth/spotify/top-artists?time_range=${timeRange}`,
+            {
+              credentials: "include",
+              headers: getAuthHeaders(),
+            }
+          ),
           fetch(`${API_BASE}/auth/spotify/me`, {
             credentials: "include",
             headers: getAuthHeaders(),
@@ -436,7 +445,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [status, isShareMode]);
+  }, [status, isShareMode, timeRange]);
 
   useEffect(() => {
     if (!shareId) return;
@@ -603,6 +612,8 @@ function App() {
      artists={artists}
      genreStats={genreChartData}
      genreDataOverride={genreChartData}
+     timeRange={timeRange}
+     onTimeRangeChange={setTimeRange}
      errorMsg={phase === "error" ? errorMsg : null}
      onLogout={logout}
      shareBusy={shareBusy}
