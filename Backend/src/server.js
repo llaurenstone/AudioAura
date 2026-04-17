@@ -18,7 +18,7 @@ app.set("trust proxy", 1);
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: "https://audio-aura-ten.vercel.app",
     credentials: true,
   })
 );
@@ -32,8 +32,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
+      secure: true,
+      sameSite: "none",
     },
   })
 );
